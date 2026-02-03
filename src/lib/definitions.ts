@@ -160,6 +160,7 @@ export const topoyoOfficerList = [
     "drh. Iqbal Djamil",
     "Alfons B",
     "Haslim",
+    "Aco",
     "Lainnya",
 ].sort((a, b) => {
     if (a === "Lainnya") return 1;
