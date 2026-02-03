@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function Home() {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const linkToCopy = "https://keswan-pearl.vercel.app/";
+  const linkToCopy = "https://newkeswan.vercel.app/";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(linkToCopy).then(() => {
