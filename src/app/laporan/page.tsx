@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useTransition, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
@@ -509,7 +508,7 @@ export default function ReportPage() {
                 trigger={
                   <Button 
                     className="w-full" 
-                    variant="secondary"
+                    variant="default"
                     disabled={isDownloadingPhotos || loading || isPending}
                   >
                     {isDownloadingPhotos ? (
