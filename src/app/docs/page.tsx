@@ -190,15 +190,15 @@ export default function DocsPage() {
           doc.text(totalText, 14, finalTableY + 10);
           doc.setFont(undefined, 'normal');
 
-          // LAMPIRAN FOTO (Kisi 1x2, 2 foto per halaman)
+          // LAMPIRAN FOTO (2 foto per halaman, secara horizontal)
           const servicesWithPhotos = services.filter(s => s.photoUrl);
           if (servicesWithPhotos.length > 0) {
             const margin = 14;
-            const verticalGap = 10;
-            // Gunakan lebar penuh dikurangi margin
-            const imgWidth = pageWidth - (2 * margin);
-            // Gunakan tinggi halaman dikurangi margin dan celah antar foto, dibagi 2
-            const imgHeight = (pageHeight - (2 * margin) - verticalGap) / 2;
+            const horizontalGap = 10;
+            // Gunakan lebar halaman dikurangi margin kiri-kanan dan celah antar foto, dibagi 2
+            const imgWidth = (pageWidth - (2 * margin) - horizontalGap) / 2;
+            // Gunakan tinggi halaman dikurangi margin atas-bawah
+            const imgHeight = pageHeight - (2 * margin);
 
             servicesWithPhotos.forEach((service, i) => {
               const pageIdx = i % 2;
@@ -208,18 +208,15 @@ export default function DocsPage() {
                 doc.addPage();
               }
 
-              const row = pageIdx;
-              const x = margin;
-              const y = margin + (row * (imgHeight + verticalGap));
+              const col = pageIdx;
+              const x = margin + (col * (imgWidth + horizontalGap));
+              const y = margin;
 
               try {
                 const formatStr = service.photoUrl?.includes('png') ? 'PNG' : 'JPEG';
-                doc.addImage(service.photoUrl!, formatStr, x, y, imgWidth, imgHeight);
+                doc.addImage(service.photoUrl!, formatStr, x, y, imgWidth, imgHeight, undefined, 'FAST');
               } catch (err) {
                 console.error("Gagal menambahkan gambar ke PDF", err);
-                doc.setFont(undefined, 'italic');
-                doc.setFontSize(10);
-                doc.text('[Gagal memuat gambar]', x + (imgWidth / 2), y + (imgHeight / 2), { align: 'center' });
               }
             });
           }
