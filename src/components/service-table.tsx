@@ -1,11 +1,12 @@
 
 'use client';
 
-import { useState, useTransition, Suspense } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { doc, deleteDoc } from 'firebase/firestore';
+import Image from 'next/image';
 
 import { HealthcareService } from '@/lib/types';
 import {
@@ -30,6 +31,7 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  ImageIcon,
 } from 'lucide-react';
 import {
   Accordion,
@@ -52,13 +54,11 @@ import { PasswordDialog } from './password-dialog';
 function ReportSkeleton() {
   return (
     <>
-      {/* Mobile Skeleton */}
       <div className="md:hidden space-y-4 p-4">
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-24 w-full" />
       </div>
-      {/* Desktop Skeleton */}
       <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
@@ -128,7 +128,7 @@ function ServiceCard({
     if (!firestore || !service.id) return;
     startDeleteTransition(async () => {
       try {
-        const serviceDoc = doc(firestore, 'healthcareServices', service.id);
+        const serviceDoc = doc(firestore, 'healthcareServices', service.id!);
         await deleteDoc(serviceDoc);
         toast({
           title: 'Sukses',
@@ -181,6 +181,16 @@ function ServiceCard({
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="p-4 pt-0 space-y-3">
+            {service.photoUrl && (
+              <div className="relative w-full aspect-video rounded-md overflow-hidden bg-muted mb-4">
+                 <Image 
+                    src={service.photoUrl} 
+                    alt="Service documentation" 
+                    fill 
+                    className="object-cover"
+                  />
+              </div>
+            )}
             <div>
               <div className="text-xs font-semibold text-muted-foreground">
                 Pemilik
@@ -320,7 +330,7 @@ function ActionsCell({
     if (!firestore || !service.id) return;
     startDeleteTransition(async () => {
       try {
-        const serviceDoc = doc(firestore, 'healthcareServices', service.id);
+        const serviceDoc = doc(firestore, 'healthcareServices', service.id!);
         await deleteDoc(serviceDoc);
         toast({
           title: 'Sukses',
@@ -392,7 +402,6 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
     <div
       className={cn('h-full', isPending && 'opacity-50 transition-opacity duration-300')}
     >
-      {/* Mobile View */}
       <div className="md:hidden h-full overflow-y-auto">
         {services.length > 0 ? (
           <div className="space-y-4 p-4">
@@ -417,14 +426,13 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
         )}
       </div>
 
-      {/* Desktop View */}
       <div className="hidden md:block relative w-full overflow-auto rounded-md border h-[520px]">
         <Table>
           <TableHeader className="sticky top-0 bg-card">
             <TableRow>
               <TableHead className="w-[120px]">Tanggal</TableHead>
               <TableHead>Pemilik</TableHead>
-              <TableHead>Jenis Ternak</TableHead>
+              <TableHead>Jenis Hewan</TableHead>
               <TableHead>Diagnosa</TableHead>
               <TableHead>Pengobatan</TableHead>
               <TableHead>Petugas</TableHead>
@@ -458,7 +466,12 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="flex flex-col gap-1">
-                      <span>{service.diagnosis}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{service.diagnosis}</span>
+                        {service.photoUrl && (
+                          <ImageIcon className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
                       {((service.caseDevelopments && service.caseDevelopments.length > 0 && service.caseDevelopments.some(d => d.status && d.count > 0)) || service.caseDevelopment) && (
                         <div className="flex flex-wrap gap-1">
                             {service.caseDevelopments && service.caseDevelopments.length > 0 && service.caseDevelopments.some(d => d.status && d.count > 0) ? (
@@ -488,6 +501,25 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
                                 </Badge>
                             ) : null}
                         </div>
+                      )}
+                      {service.photoUrl && (
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value="photo" className="border-none">
+                            <AccordionTrigger className="py-1 text-xs text-primary hover:no-underline">
+                              Lihat Foto Pelayanan
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="relative w-full aspect-video rounded-md overflow-hidden bg-muted mt-2 border">
+                                <Image 
+                                  src={service.photoUrl} 
+                                  alt="Service documentation" 
+                                  fill 
+                                  className="object-contain"
+                                />
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
                       )}
                     </div>
                   </TableCell>
@@ -556,9 +588,3 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
     </div>
   );
 }
-
-
-
-    
-
-    

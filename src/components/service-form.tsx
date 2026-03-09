@@ -1,21 +1,22 @@
 
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Camera, Upload, X, Image as ImageIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { id } from 'date-fns/locale';
-import { doc, updateDoc, addDoc, collection, Timestamp, Firestore } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 import { serviceSchema, type HealthcareService } from "@/lib/types";
 import { medicineData, medicineTypes, type MedicineType, livestockTypes, puskeswanList, treatmentTypes, dosageUnits, karossaDesaList, budongBudongDesaList, pangaleDesaList, tobadakDesaList, topoyoDesaList, budongBudongOfficerList, karossaOfficerList, pangaleOfficerList, tobadakOfficerList, topoyoOfficerList, caseStatusOptions, priorityOfficerList, prioritySyndromeOptions, priorityDiagnosisOptions } from "@/lib/definitions";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -43,7 +44,9 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
   const { toast } = useToast();
   const { firestore } = useFirebase();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditMode = !!initialData;
+
   const [showManualTreatmentType, setShowManualTreatmentType] = useState(
     initialData ? !treatmentTypes.includes(initialData.treatmentType) : false
   );
@@ -71,6 +74,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
       clinicalSymptoms: "",
       diagnosis: "",
       treatmentType: "",
+      photoUrl: "",
       treatments: [{ medicineType: "", medicineName: "", dosageValue: 0, dosageUnit: "ml" }],
       caseDevelopments: [{ status: "", count: 1 }],
     },
@@ -88,6 +92,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
 
   const watchedPuskeswan = form.watch("puskeswan");
   const watchedTreatments = form.watch("treatments");
+  const watchedPhotoUrl = form.watch("photoUrl");
 
   const officerListMap: Record<string, string[]> = {
     'Puskeswan Budong-Budong': budongBudongOfficerList,
@@ -113,10 +118,36 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
   const desaList = desaListMap[watchedPuskeswan] || [];
   const isDesaSelection = desaList.length > 0;
   
-  const watchedOwnerAddress = form.watch('ownerAddress');
   const [showManualOwnerAddress, setShowManualOwnerAddress] = useState(
     initialData ? isDesaSelection && !desaList.includes(initialData.ownerAddress) : false
   );
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "File terlalu besar",
+          description: "Maksimal ukuran foto adalah 2MB.",
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue("photoUrl", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    form.setValue("photoUrl", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   async function onSubmit(values: HealthcareService) {
     if (!firestore) {
@@ -149,7 +180,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
             const servicesCollection = collection(firestore, 'healthcareServices');
             const newDocRef = await addDoc(servicesCollection, serviceData);
             
-            // Store new ID in localStorage
             const newEntries = JSON.parse(localStorage.getItem('newEntries') || '[]');
             newEntries.push({ id: newDocRef.id, timestamp: Date.now() });
             localStorage.setItem('newEntries', JSON.stringify(newEntries));
@@ -173,7 +203,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <div className="space-y-4 md:space-y-6">
             <Card>
@@ -380,7 +410,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                       <FormLabel>
                         ID Kasus iSIKHNAS
                         <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                          (Opsional, Dapat Diisi &amp; Tidak, Dapatkan Kode Dari Isikhnas)
+                          (Opsional)
                         </span>
                       </FormLabel>
                       <FormControl>
@@ -402,9 +432,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                         <FormItem>
                             <FormLabel>
                               Jenis Ternak
-                              <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                                (Pilih Lainnya Jika Jenis Ternak Tidak Tercantum)
-                              </span>
                             </FormLabel>
                             {showManualLivestockType ? (
                               <FormControl>
@@ -539,9 +566,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     <FormItem>
                       <FormLabel>
                         Jenis Penanganan
-                        <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                          (Pilih Lainnya Jika Lebih Dari 1 Penanganan)
-                        </span>
                       </FormLabel>
                       {showManualTreatmentType ? (
                         <FormControl>
@@ -588,9 +612,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                   <div>
                     <Label>
                       Pengobatan
-                      <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                        (Pilih Lainnya Jika Jenis Obat &amp; Nama Obat Tidak Tercantum)
-                      </span>
                     </Label>
                   </div>
 
@@ -600,7 +621,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     const isManualMedicineName = medicineNameValue === 'Lainnya';
                     const dosageUnitValue = form.watch(`treatments.${index}.dosageUnit`);
                     const isManualDosageUnit = dosageUnitValue === 'Lainnya';
-
                     const isMedicineTypeLainnya = selectedMedicineType === 'Lainnya';
 
                     return (
@@ -693,7 +713,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                             )}
                           />
                           <div className="space-y-2">
-                            <FormLabel>Dosis <span className="italic font-normal text-muted-foreground text-xs">(Isi Total Dosis Jika Lebih Dari 1 Ekor)</span></FormLabel>
+                            <FormLabel>Dosis</FormLabel>
                             <div className="grid grid-cols-2 gap-2">
                               <FormField
                                   control={form.control}
@@ -777,11 +797,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     <div>
                         <Label>
                           Perkembangan Kasus
-                          {formType === 'keswan' && (
-                            <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                              (Perkirakan Presentase Kondisi Hewan Sehingga Dapat Diisi Di Awal)
-                            </span>
-                          )}
                         </Label>
                     </div>
 
@@ -856,9 +871,63 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                             Tambah
                         </Button>
                     </div>
-                    <FormMessage>{form.formState.errors.caseDevelopments?.message}</FormMessage>
                     </div>
                 </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Upload Foto Pelayanan</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-lg p-6 hover:bg-muted/50 transition-colors">
+                  {watchedPhotoUrl ? (
+                    <div className="relative w-full aspect-video">
+                      <Image 
+                        src={watchedPhotoUrl} 
+                        alt="Service documentation preview" 
+                        fill 
+                        className="object-contain rounded-md"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-8 w-8 rounded-full shadow-lg"
+                        onClick={removePhoto}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">Belum ada foto yang diunggah</p>
+                    </div>
+                  )}
+                  <div className="mt-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="gap-2"
+                    >
+                      {watchedPhotoUrl ? (
+                        <><ImageIcon className="h-4 w-4" /> Ganti Foto</>
+                      ) : (
+                        <><Upload className="h-4 w-4" /> Pilih Foto</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </div>
         </div>
@@ -872,4 +941,3 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
     </Form>
   );
 }
-    

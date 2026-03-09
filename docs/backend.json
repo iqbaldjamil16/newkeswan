@@ -56,6 +56,10 @@
           "type": "string",
           "description": "Type of treatment provided."
         },
+        "photoUrl": {
+          "type": "string",
+          "description": "Base64 encoded string or URL of the service documentation photo."
+        },
         "treatments": {
           "type": "array",
           "items": {
@@ -80,6 +84,20 @@
               "dosageValue",
               "dosageUnit"
             ]
+          }
+        },
+        "caseDevelopments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              },
+              "count": {
+                "type": "number"
+              }
+            }
           }
         }
       },
@@ -109,10 +127,8 @@
         "schema": {
           "$ref": "#/backend/entities/HealthcareService"
         },
-        "description": "Stores all healthcare service records. Publicly readable and writable for this simple application."
+        "description": "Stores all healthcare service records."
       }
     }
   }
 }
-
-    

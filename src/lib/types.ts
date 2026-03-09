@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const treatmentSchema = z.object({
@@ -24,7 +25,7 @@ export const serviceSchema = z.object({
   ownerAddress: z.string().min(1, "Wajib diisi."),
   caseId: z.string().optional().default('').refine(
     (val) => {
-      if (!val) return true; // Allow empty string
+      if (!val) return true;
       return /^\d{8,10}$/.test(val);
     },
     {
@@ -36,6 +37,7 @@ export const serviceSchema = z.object({
   clinicalSymptoms: z.string().min(1, "Wajib diisi."),
   diagnosis: z.string().min(1, "Wajib diisi."),
   treatmentType: z.string().min(1, "Wajib diisi."),
+  photoUrl: z.string().optional(),
   treatments: z.array(treatmentSchema).min(1, "Minimal satu pengobatan harus ditambahkan."),
   caseDevelopment: z.string().optional(),
   caseDevelopments: z.array(caseDevelopmentEntrySchema).min(1, "Minimal satu perkembangan kasus wajib ditambahkan.").optional(),
@@ -55,4 +57,3 @@ export const serviceSchema = z.object({
 export type HealthcareService = z.infer<typeof serviceSchema>;
 export type Treatment = z.infer<typeof treatmentSchema>;
 export type CaseDevelopmentEntry = z.infer<typeof caseDevelopmentEntrySchema>;
-    
