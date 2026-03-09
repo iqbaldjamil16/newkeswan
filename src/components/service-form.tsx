@@ -607,7 +607,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-4 space-y-4">
                 <div className="space-y-4">
                   <div>
                     <Label>
@@ -792,7 +792,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
               </CardContent>
             </Card>
             <Card>
-                <CardContent className="p-4">
+                <CardContent className="p-4 space-y-4">
                     <div className="space-y-4">
                     <div>
                         <Label>
@@ -876,10 +876,10 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Upload Foto Pelayanan</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 space-y-4">
+                <div>
+                  <Label className="font-normal">Upload Foto Pelayanan</Label>
+                </div>
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-lg p-6 hover:bg-muted/50 transition-colors">
                   {watchedPhotoUrl ? (
                     <div className="relative w-full aspect-video">
