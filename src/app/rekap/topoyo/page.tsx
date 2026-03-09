@@ -324,7 +324,7 @@ export default function RekapTopoyoPage() {
                     service.treatments.map((t) => t.medicineName).join(', '),
                     service.treatments.map((t) => `${t.dosageValue} ${t.dosageUnit}`).join(', '),
                     service.livestockCount,
-                    service.photoUrl || '-',
+                    service.photoUrl ? '[Ada Foto]' : '-',
                 ]);
             });
     
@@ -348,7 +348,7 @@ export default function RekapTopoyoPage() {
                 { wch: 30 }, 
                 { wch: 20 }, 
                 { wch: 12 }, 
-                { wch: 30 }, 
+                { wch: 20 }, 
             ];
     
             const sheetName = officerName.replace(/[/\\?*:[\]]/g, '').substring(0, 31);

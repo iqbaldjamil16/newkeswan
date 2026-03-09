@@ -267,7 +267,7 @@ export default function ReportPage() {
             'Jumlah Ternak': service.livestockCount,
             'ID Isikhnas': service.caseId,
             'Perkembangan Kasus': caseDevelopmentText,
-            'Lampiran Foto': service.photoUrl || '-',
+            'Lampiran Foto': service.photoUrl ? '[Ada Foto]' : '-',
           };
         });
         allDataForSheet.push(...data);
@@ -282,7 +282,7 @@ export default function ReportPage() {
           const cellLength = cellValue ? String(cellValue).length : 0;
           return Math.max(max, cellLength);
         }, header.length);
-        return { wch: header === 'Lampiran Foto' ? 30 : Math.min(maxLength + 2, 50) };
+        return { wch: header === 'Lampiran Foto' ? 20 : Math.min(maxLength + 2, 50) };
       });
       ws['!cols'] = columnWidths;
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
@@ -332,7 +332,7 @@ export default function ReportPage() {
             'Jumlah Ternak': service.livestockCount,
             'ID Isikhnas': service.caseId,
             'Perkembangan Kasus': caseDevelopmentText,
-            'Lampiran Foto': service.photoUrl || '-',
+            'Lampiran Foto': service.photoUrl ? '[Ada Foto]' : '-',
           };
         });
         allDataForSheet.push(...data);
@@ -347,7 +347,7 @@ export default function ReportPage() {
           const cellLength = cellValue ? String(cellValue).length : 0;
           return Math.max(max, cellLength);
         }, header.length);
-        return { wch: header === 'Lampiran Foto' ? 30 : Math.min(maxLength + 2, 50) };
+        return { wch: header === 'Lampiran Foto' ? 20 : Math.min(maxLength + 2, 50) };
       });
       ws['!cols'] = columnWidths;
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
