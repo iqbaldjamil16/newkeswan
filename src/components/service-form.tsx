@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PlusCircle, Trash2, Camera, Upload, X, Image as ImageIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { id } from 'date-fns/locale';
-import { doc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import { doc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
-import { useFirebase } from "@/firebase";
+import { useFirebase, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from "@/firebase";
 
 
 export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?: HealthcareService, formType?: 'keswan' | 'priority' }) {
@@ -149,7 +149,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
     }
   };
 
-  async function onSubmit(values: HealthcareService) {
+  function onSubmit(values: HealthcareService) {
     if (!firestore) {
         toast({
           variant: "destructive",
@@ -159,7 +159,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
         return;
     }
 
-    startTransition(async () => {
+    startTransition(() => {
       try {
         const { id, caseDevelopment, ...dataToSave } = values;
         
@@ -170,7 +170,9 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
 
         if (isEditMode && initialData?.id) {
             const serviceDocRef = doc(firestore, 'healthcareServices', initialData.id);
-            await updateDoc(serviceDocRef, serviceData);
+            // Non-blocking update
+            updateDocumentNonBlocking(serviceDocRef, serviceData);
+            
             toast({
               title: "Sukses",
               description: "Data pelayanan berhasil diperbarui!",
@@ -178,11 +180,23 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
             router.push('/laporan');
         } else {
             const servicesCollection = collection(firestore, 'healthcareServices');
-            const newDocRef = await addDoc(servicesCollection, serviceData);
             
-            const newEntries = JSON.parse(localStorage.getItem('newEntries') || '[]');
-            newEntries.push({ id: newDocRef.id, timestamp: Date.now() });
-            localStorage.setItem('newEntries', JSON.stringify(newEntries));
+            // Initiate the write and handle redirection immediately for smooth UI
+            // We use addDoc directly to get the ID for localStorage, but we don't 'await' it.
+            addDoc(servicesCollection, serviceData)
+              .then((newDocRef) => {
+                const newEntries = JSON.parse(localStorage.getItem('newEntries') || '[]');
+                newEntries.push({ id: newDocRef.id, timestamp: Date.now() });
+                localStorage.setItem('newEntries', JSON.stringify(newEntries));
+              })
+              .catch((error) => {
+                const permissionError = new FirestorePermissionError({
+                  path: servicesCollection.path,
+                  operation: 'create',
+                  requestResourceData: serviceData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+              });
 
             toast({
                 title: "Sukses",
