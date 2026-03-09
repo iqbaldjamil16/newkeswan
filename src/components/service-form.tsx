@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useTransition, useState, useRef } from "react";
@@ -125,11 +124,11 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > 500 * 1024) {
         toast({
           variant: "destructive",
           title: "File terlalu besar",
-          description: "Maksimal ukuran foto adalah 2MB.",
+          description: "Maksimal ukuran foto adalah 500KB.",
         });
         return;
       }
@@ -170,7 +169,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
 
         if (isEditMode && initialData?.id) {
             const serviceDocRef = doc(firestore, 'healthcareServices', initialData.id);
-            // Non-blocking update
             updateDocumentNonBlocking(serviceDocRef, serviceData);
             
             toast({
@@ -180,9 +178,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
             router.push('/laporan');
         } else {
             const servicesCollection = collection(firestore, 'healthcareServices');
-            
-            // Initiate the write and handle redirection immediately for smooth UI
-            // We use addDoc directly to get the ID for localStorage, but we don't 'await' it.
             addDoc(servicesCollection, serviceData)
               .then((newDocRef) => {
                 const newEntries = JSON.parse(localStorage.getItem('newEntries') || '[]');
@@ -895,7 +890,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                   <Label className="font-normal text-sm">
                     Upload Foto Pelayanan
                     <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                      (Opsional, Maks 2MB)
+                      (Opsional, Maks 500KB)
                     </span>
                   </Label>
                 </div>
