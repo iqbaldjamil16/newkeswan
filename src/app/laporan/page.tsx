@@ -465,7 +465,6 @@ export default function ReportPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-bold font-headline">Unduh Foto Pelayanan</CardTitle>
           <CardDescription>
             Pilih filter untuk mengunduh semua foto pelayanan dalam format ZIP.
           </CardDescription>
