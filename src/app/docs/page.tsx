@@ -190,44 +190,42 @@ export default function DocsPage() {
           doc.text(totalText, 14, finalTableY + 10);
           doc.setFont(undefined, 'normal');
 
-          // LAMPIRAN FOTO
+          // LAMPIRAN FOTO (Kisi 2x2, 4 foto per halaman)
           const servicesWithPhotos = services.filter(s => s.photoUrl);
           if (servicesWithPhotos.length > 0) {
-            doc.addPage();
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text('Lampiran Foto Pelayanan', pageWidth / 2, 20, { align: 'center' });
-            
-            let imgY = 30;
-            const imgWidth = 120;
-            const imgHeight = 90;
+            const margin = 14;
             const horizontalGap = 10;
-            const verticalGap = 20;
+            const verticalGap = 15;
+            const imgWidth = (pageWidth - (2 * margin) - horizontalGap) / 2;
+            const imgHeight = (pageHeight - (2 * margin) - (2 * 10) - verticalGap) / 2; // Adjusted for caption height
 
-            // Simple layout: 1 or 2 images per page
             servicesWithPhotos.forEach((service, i) => {
-              const caption = `${i + 1}. Pemilik: ${service.ownerName} - ${format(new Date(service.date), 'dd/MM/yyyy')}`;
+              const pageIdx = i % 4;
               
-              // Check for page break
-              if (imgY + imgHeight + 15 > pageHeight) {
+              // Tambah halaman baru setiap 4 foto
+              if (pageIdx === 0) {
                 doc.addPage();
-                imgY = 20;
               }
 
-              doc.setFontSize(10);
+              const row = Math.floor(pageIdx / 2);
+              const col = pageIdx % 2;
+              
+              const x = margin + (col * (imgWidth + horizontalGap));
+              const y = margin + (row * (imgHeight + verticalGap + 8)); // 8 is caption space
+
+              const caption = `${i + 1}. Pemilik: ${service.ownerName} - ${format(new Date(service.date), 'dd/MM/yyyy')}`;
+              
+              doc.setFontSize(9);
               doc.setFont(undefined, 'bold');
-              doc.text(caption, 14, imgY);
+              doc.text(caption, x, y);
               
               try {
-                // Determine format
                 const formatStr = service.photoUrl?.includes('png') ? 'PNG' : 'JPEG';
-                doc.addImage(service.photoUrl!, formatStr, 14, imgY + 5, imgWidth, imgHeight);
-                imgY += imgHeight + verticalGap;
+                doc.addImage(service.photoUrl!, formatStr, x, y + 2, imgWidth, imgHeight);
               } catch (err) {
                 console.error("Gagal menambahkan gambar ke PDF", err);
                 doc.setFont(undefined, 'italic');
-                doc.text('[Gagal memuat gambar]', 14, imgY + 10);
-                imgY += 20;
+                doc.text('[Gagal memuat gambar]', x, y + 10);
               }
             });
           }
