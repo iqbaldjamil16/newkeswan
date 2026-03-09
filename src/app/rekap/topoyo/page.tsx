@@ -297,7 +297,7 @@ export default function RekapTopoyoPage() {
         officerNames.forEach(officerName => {
             const officerServices = servicesByOfficer[officerName].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
             
-            const tableHeaders = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Gejala Klinis', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'Lampiran Foto'];
+            const tableHeaders = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Gejala Klinis', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'Perkembangan Kasus', 'Lampiran Foto'];
             
             const sheetData: any[][] = [
                 ["PEMERINTAHAN KABUPATEN MAMUJU TENGAH"],
@@ -313,6 +313,11 @@ export default function RekapTopoyoPage() {
             ];
     
             officerServices.forEach(service => {
+                const caseDevelopmentText = (service.caseDevelopments || [])
+                    .filter(dev => dev.status && dev.count > 0)
+                    .map(dev => `${dev.status} (${dev.count})`)
+                    .join(', ');
+
                 sheetData.push([
                     format(new Date(service.date), 'dd-MM-yyyy'),
                     service.ownerName,
@@ -324,6 +329,7 @@ export default function RekapTopoyoPage() {
                     service.treatments.map((t) => t.medicineName).join(', '),
                     service.treatments.map((t) => `${t.dosageValue} ${t.dosageUnit}`).join(', '),
                     service.livestockCount,
+                    caseDevelopmentText || (service.caseDevelopment || '-'),
                     service.photoUrl ? '[Ada Foto]' : '-',
                 ]);
             });
@@ -331,9 +337,9 @@ export default function RekapTopoyoPage() {
             const ws = XLSX.utils.aoa_to_sheet(sheetData);
     
             const merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } },
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 11 } },
             ];
             ws['!merges'] = merges;
             
@@ -348,6 +354,7 @@ export default function RekapTopoyoPage() {
                 { wch: 30 }, 
                 { wch: 20 }, 
                 { wch: 12 }, 
+                { wch: 20 }, 
                 { wch: 20 }, 
             ];
     
