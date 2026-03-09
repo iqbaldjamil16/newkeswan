@@ -75,7 +75,7 @@ export default function ReportPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
 
-  // States for Photo Download Card
+  // States for Filter & Download Card
   const [photoPuskeswan, setPhotoPuskeswan] = useState('all');
   const [photoOfficer, setPhotoOfficer] = useState('all');
   const [isDownloadingPhotos, setIsDownloadingPhotos] = useState(false);
@@ -285,8 +285,20 @@ export default function ReportPage() {
   const handleDownload = () => {
     const wb = XLSX.utils.book_new();
 
+    // Apply additional filters from the filter card
+    const servicesToExport = filteredServices.filter(s => {
+      const matchPuskeswan = photoPuskeswan === 'all' || s.puskeswan === photoPuskeswan;
+      const matchOfficer = photoOfficer === 'all' || s.officerName === photoOfficer;
+      return matchPuskeswan && matchOfficer;
+    });
+
+    if (servicesToExport.length === 0) {
+      toast({ title: "Info", description: "Tidak ada data yang ditemukan untuk filter ini." });
+      return;
+    }
+
     puskeswanList.forEach((puskeswan) => {
-      const servicesByPuskeswan = filteredServices.filter(
+      const servicesByPuskeswan = servicesToExport.filter(
         (s) => s.puskeswan === puskeswan && !priorityDiagnosisOptions.includes(s.diagnosis)
       );
 
@@ -355,7 +367,7 @@ export default function ReportPage() {
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
     });
 
-    const priorityServices = filteredServices.filter(s => priorityDiagnosisOptions.includes(s.diagnosis));
+    const priorityServices = servicesToExport.filter(s => priorityDiagnosisOptions.includes(s.diagnosis));
     if (priorityServices.length > 0) {
       const sortedServices = priorityServices.sort((a, b) => {
         const officerComparison = a.officerName.localeCompare(b.officerName);
@@ -446,19 +458,6 @@ export default function ReportPage() {
                 diinput.
               </CardDescription>
             </div>
-            <div className="w-full flex justify-end sm:w-auto">
-              <PasswordDialog
-                title="Akses Terbatas"
-                description="Silakan masukkan kata sandi untuk mengunduh laporan."
-                onSuccess={handleDownload}
-                trigger={
-                  <Button disabled={loading || filteredServices.length === 0 || isPending}>
-                    <Download className="mr-2 h-5 w-5" />
-                    Unduh Laporan
-                  </Button>
-                }
-              />
-            </div>
           </div>
         </CardHeader>
       </Card>
@@ -499,7 +498,18 @@ export default function ReportPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
+            <div className="flex flex-col gap-2">
+              <PasswordDialog
+                title="Akses Terbatas"
+                description="Silakan masukkan kata sandi untuk mengunduh laporan."
+                onSuccess={handleDownload}
+                trigger={
+                  <Button disabled={loading || filteredServices.length === 0 || isPending} className="w-full">
+                    <Download className="mr-2 h-4 w-4" />
+                    Unduh Laporan
+                  </Button>
+                }
+              />
               <PasswordDialog
                 title="Akses Terbatas"
                 description="Masukkan kata sandi untuk mengunduh foto."
