@@ -254,7 +254,7 @@ export default function RekapTopoyoPage() {
          const updatedEntries = newEntries.filter((entry: {id: string}) => entry.id !== serviceId);
          if(newEntries.length !== updatedEntries.length) {
            localStorage.setItem('newEntries', JSON.stringify(updatedEntries));
-           setHighlightedIds(updatedEntries.map((e: {id: string}) => e.id));
+           setHighlightedIds(updatedEntries.map((entry: {id: string}) => entry.id));
          }
     };
 
@@ -297,7 +297,7 @@ export default function RekapTopoyoPage() {
         officerNames.forEach(officerName => {
             const officerServices = servicesByOfficer[officerName].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
             
-            const tableHeaders = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Gejala Klinis', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak'];
+            const tableHeaders = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Gejala Klinis', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'Lampiran Foto'];
             
             const sheetData: any[][] = [
                 ["PEMERINTAHAN KABUPATEN MAMUJU TENGAH"],
@@ -324,15 +324,16 @@ export default function RekapTopoyoPage() {
                     service.treatments.map((t) => t.medicineName).join(', '),
                     service.treatments.map((t) => `${t.dosageValue} ${t.dosageUnit}`).join(', '),
                     service.livestockCount,
+                    service.photoUrl || '-',
                 ]);
             });
     
             const ws = XLSX.utils.aoa_to_sheet(sheetData);
     
             const merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 9 } },
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: 10 } },
             ];
             ws['!merges'] = merges;
             
@@ -347,6 +348,7 @@ export default function RekapTopoyoPage() {
                 { wch: 30 }, 
                 { wch: 20 }, 
                 { wch: 12 }, 
+                { wch: 30 }, 
             ];
     
             const sheetName = officerName.replace(/[/\\?*:[\]]/g, '').substring(0, 31);

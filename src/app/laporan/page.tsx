@@ -211,7 +211,7 @@ export default function ReportPage() {
      const updatedEntries = newEntries.filter((entry: {id: string}) => entry.id !== serviceId);
      if(newEntries.length !== updatedEntries.length) {
        localStorage.setItem('newEntries', JSON.stringify(updatedEntries));
-       setHighlightedIds(updatedEntries.map((e: {id: string}) => e.id));
+       setHighlightedIds(updatedEntries.map((entry: {id: string}) => entry.id));
      }
   };
 
@@ -240,7 +240,7 @@ export default function ReportPage() {
       });
 
       const allDataForSheet: any[] = [];
-      const headers = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Sindrom', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'ID Isikhnas', 'Perkembangan Kasus'];
+      const headers = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Sindrom', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'ID Isikhnas', 'Perkembangan Kasus', 'Lampiran Foto'];
       const officerNames = Object.keys(servicesByOfficer).sort();
 
       officerNames.forEach(officerName => {
@@ -267,6 +267,7 @@ export default function ReportPage() {
             'Jumlah Ternak': service.livestockCount,
             'ID Isikhnas': service.caseId,
             'Perkembangan Kasus': caseDevelopmentText,
+            'Lampiran Foto': service.photoUrl || '-',
           };
         });
         allDataForSheet.push(...data);
@@ -281,7 +282,7 @@ export default function ReportPage() {
           const cellLength = cellValue ? String(cellValue).length : 0;
           return Math.max(max, cellLength);
         }, header.length);
-        return { wch: maxLength + 2 };
+        return { wch: header === 'Lampiran Foto' ? 30 : Math.min(maxLength + 2, 50) };
       });
       ws['!cols'] = columnWidths;
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
@@ -304,7 +305,7 @@ export default function ReportPage() {
       });
 
       const allDataForSheet: any[] = [];
-      const headers = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Sindrom', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'ID Isikhnas', 'Perkembangan Kasus'];
+      const headers = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Sindrom', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'ID Isikhnas', 'Perkembangan Kasus', 'Lampiran Foto'];
       const officerNames = Object.keys(servicesByOfficer).sort();
 
       officerNames.forEach(officerName => {
@@ -312,7 +313,7 @@ export default function ReportPage() {
         allDataForSheet.push({});
         allDataForSheet.push({ 'Nama Petugas': officerName });
         allDataForSheet.push(Object.fromEntries(headers.map(h => [h, h])));
-        const data = servicesByOfficer[officerName].map((service) => {
+        const data = priorityServices.filter(s => s.officerName === officerName).map((service) => {
           const caseDevelopmentText = (service.caseDevelopments || [])
             .filter(dev => dev.status && dev.count > 0)
             .map(dev => `${dev.status} (${dev.count})`)
@@ -331,6 +332,7 @@ export default function ReportPage() {
             'Jumlah Ternak': service.livestockCount,
             'ID Isikhnas': service.caseId,
             'Perkembangan Kasus': caseDevelopmentText,
+            'Lampiran Foto': service.photoUrl || '-',
           };
         });
         allDataForSheet.push(...data);
@@ -345,7 +347,7 @@ export default function ReportPage() {
           const cellLength = cellValue ? String(cellValue).length : 0;
           return Math.max(max, cellLength);
         }, header.length);
-        return { wch: maxLength + 2 };
+        return { wch: header === 'Lampiran Foto' ? 30 : Math.min(maxLength + 2, 50) };
       });
       ws['!cols'] = columnWidths;
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
@@ -474,41 +476,3 @@ export default function ReportPage() {
     </div>
   );
 }
-    
-
-    
-
-
-
-    
-
-    
-
-
-
-
-    
-
-    
-
-    
-
-    
-
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-
-    
-
-    
