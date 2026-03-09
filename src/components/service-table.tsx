@@ -26,12 +26,14 @@ import {
 } from './ui/card';
 import {
   PawPrint,
-  PlusCircle,
   ChevronDown,
   Pencil,
   Trash2,
   Loader2,
   ImageIcon,
+  PlusCircle,
+  X,
+  Maximize2
 } from 'lucide-react';
 import {
   Accordion,
@@ -45,6 +47,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -113,10 +120,12 @@ function ServiceCard({
   service,
   onDelete,
   isHighlighted,
+  onImageClick,
 }: {
   service: HealthcareService;
   onDelete: (id: string) => void;
   isHighlighted: boolean;
+  onImageClick: (url: string) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
@@ -182,13 +191,19 @@ function ServiceCard({
         <CollapsibleContent>
           <CardContent className="p-4 pt-0 space-y-3">
             {service.photoUrl && (
-              <div className="relative w-full aspect-video rounded-md overflow-hidden bg-muted mb-4">
+              <div 
+                className="relative w-full aspect-video rounded-md overflow-hidden bg-muted mb-4 cursor-pointer group"
+                onClick={() => onImageClick(service.photoUrl!)}
+              >
                  <Image 
                     src={service.photoUrl} 
                     alt="Service documentation" 
                     fill 
-                    className="object-cover"
+                    className="object-cover transition-transform group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Maximize2 className="text-white h-8 w-8" />
+                  </div>
               </div>
             )}
             <div>
@@ -393,7 +408,8 @@ interface ServiceTableProps {
 }
 
 export function ServiceTable({ services, loading, highlightedIds, searchTerm, onDelete, isPending }: ServiceTableProps) {
-  
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   if (loading) {
     return <ReportSkeleton />;
   }
@@ -411,6 +427,7 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
                 service={service}
                 onDelete={onDelete}
                 isHighlighted={service.id ? highlightedIds.includes(service.id) : false}
+                onImageClick={setPreviewImage}
               />
             ))}
           </div>
@@ -509,13 +526,19 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
                               Lihat Foto Pelayanan
                             </AccordionTrigger>
                             <AccordionContent>
-                              <div className="relative w-full aspect-video rounded-md overflow-hidden bg-muted mt-2 border">
+                              <div 
+                                className="relative w-full aspect-video rounded-md overflow-hidden bg-muted mt-2 border cursor-pointer group"
+                                onClick={() => setPreviewImage(service.photoUrl!)}
+                              >
                                 <Image 
                                   src={service.photoUrl} 
                                   alt="Service documentation" 
                                   fill 
-                                  className="object-contain"
+                                  className="object-contain transition-transform group-hover:scale-[1.02]"
                                 />
+                                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Maximize2 className="text-white h-6 w-6" />
+                                </div>
                               </div>
                             </AccordionContent>
                           </AccordionItem>
@@ -585,6 +608,31 @@ export function ServiceTable({ services, loading, highlightedIds, searchTerm, on
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl w-[95vw] h-auto p-0 overflow-hidden bg-black/95 border-none">
+          <DialogTitle className="sr-only">Pratinjau Foto</DialogTitle>
+          <div className="relative w-full h-[80vh] flex items-center justify-center p-2">
+            {previewImage && (
+              <Image
+                src={previewImage}
+                alt="Pratinjau Foto"
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-2 right-2 text-white hover:bg-white/20 z-50 rounded-full" 
+              onClick={() => setPreviewImage(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
