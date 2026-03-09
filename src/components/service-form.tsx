@@ -878,7 +878,12 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div>
-                  <Label className="font-normal">Upload Foto Pelayanan</Label>
+                  <Label className="font-normal text-sm">
+                    Upload Foto Pelayanan
+                    <span className="ml-2 text-xs italic font-normal text-muted-foreground">
+                      (Opsional)
+                    </span>
+                  </Label>
                 </div>
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-lg p-6 hover:bg-muted/50 transition-colors">
                   {watchedPhotoUrl ? (
