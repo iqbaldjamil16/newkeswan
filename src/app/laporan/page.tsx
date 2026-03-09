@@ -466,7 +466,7 @@ export default function ReportPage() {
       <Card>
         <CardHeader>
           <CardDescription>
-            Pilih filter untuk mengunduh semua foto pelayanan dalam format ZIP.
+            Pilih filter untuk mengunduh data laporan dan foto pelayanan
           </CardDescription>
         </CardHeader>
         <CardContent>
