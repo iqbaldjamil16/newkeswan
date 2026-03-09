@@ -190,42 +190,36 @@ export default function DocsPage() {
           doc.text(totalText, 14, finalTableY + 10);
           doc.setFont(undefined, 'normal');
 
-          // LAMPIRAN FOTO (Kisi 2x2, 4 foto per halaman)
+          // LAMPIRAN FOTO (Kisi 1x2, 2 foto per halaman)
           const servicesWithPhotos = services.filter(s => s.photoUrl);
           if (servicesWithPhotos.length > 0) {
             const margin = 14;
-            const horizontalGap = 10;
-            const verticalGap = 15;
-            const imgWidth = (pageWidth - (2 * margin) - horizontalGap) / 2;
-            const imgHeight = (pageHeight - (2 * margin) - (2 * 10) - verticalGap) / 2; // Adjusted for caption height
+            const verticalGap = 10;
+            // Gunakan lebar penuh dikurangi margin
+            const imgWidth = pageWidth - (2 * margin);
+            // Gunakan tinggi halaman dikurangi margin dan celah antar foto, dibagi 2
+            const imgHeight = (pageHeight - (2 * margin) - verticalGap) / 2;
 
             servicesWithPhotos.forEach((service, i) => {
-              const pageIdx = i % 4;
+              const pageIdx = i % 2;
               
-              // Tambah halaman baru setiap 4 foto
+              // Tambah halaman baru setiap 2 foto
               if (pageIdx === 0) {
                 doc.addPage();
               }
 
-              const row = Math.floor(pageIdx / 2);
-              const col = pageIdx % 2;
-              
-              const x = margin + (col * (imgWidth + horizontalGap));
-              const y = margin + (row * (imgHeight + verticalGap + 8)); // 8 is caption space
+              const row = pageIdx;
+              const x = margin;
+              const y = margin + (row * (imgHeight + verticalGap));
 
-              const caption = `${i + 1}. Pemilik: ${service.ownerName} - ${format(new Date(service.date), 'dd/MM/yyyy')}`;
-              
-              doc.setFontSize(9);
-              doc.setFont(undefined, 'bold');
-              doc.text(caption, x, y);
-              
               try {
                 const formatStr = service.photoUrl?.includes('png') ? 'PNG' : 'JPEG';
-                doc.addImage(service.photoUrl!, formatStr, x, y + 2, imgWidth, imgHeight);
+                doc.addImage(service.photoUrl!, formatStr, x, y, imgWidth, imgHeight);
               } catch (err) {
                 console.error("Gagal menambahkan gambar ke PDF", err);
                 doc.setFont(undefined, 'italic');
-                doc.text('[Gagal memuat gambar]', x, y + 10);
+                doc.setFontSize(10);
+                doc.text('[Gagal memuat gambar]', x + (imgWidth / 2), y + (imgHeight / 2), { align: 'center' });
               }
             });
           }
@@ -253,9 +247,11 @@ export default function DocsPage() {
             <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">
               Unduh PDF Khusus
             </CardTitle>
-            <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
-              Halaman ini menyediakan fitur untuk mengunduh laporan PDF khusus untuk drh. Muhammad Iqbal Djamil.
-            </CardDescription>
+            <CardContent className="p-0 pt-2">
+              <CardDescription className="text-muted-foreground text-sm md:text-base">
+                Halaman ini menyediakan fitur untuk mengunduh laporan PDF khusus untuk drh. Muhammad Iqbal Djamil.
+              </CardDescription>
+            </CardContent>
           </CardHeader>
         </Card>
 
