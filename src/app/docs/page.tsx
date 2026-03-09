@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -97,6 +96,8 @@ export default function DocsPage() {
         const doc = new jsPDF({ orientation: 'landscape' });
         
         const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
         doc.setFontSize(18);
         doc.setFont(undefined, 'bold');
         doc.text('Laporan Pelayanan Kesehatan Hewan', pageWidth / 2, 22, { align: 'center' });
@@ -182,12 +183,54 @@ export default function DocsPage() {
               }
           });
           
-          const finalY = (doc as any).lastAutoTable.finalY;
+          const finalTableY = (doc as any).lastAutoTable.finalY;
           const totalText = `Total Data: ${services.length} - Total Pelayanan Keswan: ${totalLivestock} Ekor`;
           doc.setFontSize(10);
           doc.setFont(undefined, 'bold');
-          doc.text(totalText, 14, finalY + 10);
+          doc.text(totalText, 14, finalTableY + 10);
           doc.setFont(undefined, 'normal');
+
+          // LAMPIRAN FOTO
+          const servicesWithPhotos = services.filter(s => s.photoUrl);
+          if (servicesWithPhotos.length > 0) {
+            doc.addPage();
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Lampiran Foto Pelayanan', pageWidth / 2, 20, { align: 'center' });
+            
+            let imgY = 30;
+            const imgWidth = 120;
+            const imgHeight = 90;
+            const horizontalGap = 10;
+            const verticalGap = 20;
+
+            // Simple layout: 1 or 2 images per page
+            servicesWithPhotos.forEach((service, i) => {
+              const caption = `${i + 1}. Pemilik: ${service.ownerName} - ${format(new Date(service.date), 'dd/MM/yyyy')}`;
+              
+              // Check for page break
+              if (imgY + imgHeight + 15 > pageHeight) {
+                doc.addPage();
+                imgY = 20;
+              }
+
+              doc.setFontSize(10);
+              doc.setFont(undefined, 'bold');
+              doc.text(caption, 14, imgY);
+              
+              try {
+                // Determine format
+                const formatStr = service.photoUrl?.includes('png') ? 'PNG' : 'JPEG';
+                doc.addImage(service.photoUrl!, formatStr, 14, imgY + 5, imgWidth, imgHeight);
+                imgY += imgHeight + verticalGap;
+              } catch (err) {
+                console.error("Gagal menambahkan gambar ke PDF", err);
+                doc.setFont(undefined, 'italic');
+                doc.text('[Gagal memuat gambar]', 14, imgY + 10);
+                imgY += 20;
+              }
+            });
+          }
 
         } else {
           doc.setFontSize(11);
