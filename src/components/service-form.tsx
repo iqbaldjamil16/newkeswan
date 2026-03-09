@@ -881,7 +881,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                   <Label className="font-normal text-sm">
                     Upload Foto Pelayanan
                     <span className="ml-2 text-xs italic font-normal text-muted-foreground">
-                      (Opsional)
+                      (Opsional, Maks 2MB)
                     </span>
                   </Label>
                 </div>
