@@ -7,11 +7,12 @@ import * as XLSX from 'xlsx';
 import { getYear, getMonth, format, subYears, startOfMonth, endOfMonth } from "date-fns";
 import { id } from 'date-fns/locale';
 import { collection, query, orderBy, getDocs, Timestamp, where } from 'firebase/firestore';
+import JSZip from 'jszip';
 
 import { ServiceTable } from "@/components/service-table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CornerUpLeft, Download, LayoutGrid, BarChart2 } from "lucide-react";
+import { CornerUpLeft, Download, LayoutGrid, BarChart2, ImageIcon, Loader2 } from "lucide-react";
 import { type HealthcareService, serviceSchema } from "@/lib/types";
 import { PasswordDialog } from "@/components/password-dialog";
 import { puskeswanList, priorityDiagnosisOptions } from "@/lib/definitions";
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 const StatisticsDisplay = lazy(() => import('@/components/statistics-display'));
 
@@ -63,6 +65,7 @@ const months = Array.from({ length: 12 }, (_, i) => ({
 
 export default function ReportPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { firestore } = useFirebase();
   const [services, setServices] = useState<HealthcareService[]>([]);
   const [filteredServices, setFilteredServices] = useState<HealthcareService[]>([]);
@@ -72,6 +75,11 @@ export default function ReportPage() {
   const [selectedYear, setSelectedYear] = useState<string>(getYear(new Date()).toString());
   const [searchTerm, setSearchTerm] = useState('');
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+
+  // States for Photo Download Card
+  const [photoPuskeswan, setPhotoPuskeswan] = useState('all');
+  const [photoOfficer, setPhotoOfficer] = useState('all');
+  const [isDownloadingPhotos, setIsDownloadingPhotos] = useState(false);
 
   useEffect(() => {
     const updateHighlighted = () => {
@@ -141,14 +149,19 @@ export default function ReportPage() {
             }];
           }
           
-          const service = serviceSchema.parse({
+          const result = serviceSchema.safeParse({
             ...data,
             id: doc.id,
-            date: (data.date as Timestamp).toDate(),
+            date: data.date ? (data.date as Timestamp).toDate() : new Date(),
           });
-          fetchedServices.push(service);
+
+          if (result.success) {
+            fetchedServices.push(result.data);
+          } else {
+            console.warn('Validation failed for document:', doc.id, result.error);
+          }
         } catch (e) {
-          console.error('Validation error parsing service data:', e);
+          console.error('Error processing service data:', e);
         }
       });
       setServices(fetchedServices);
@@ -202,6 +215,61 @@ export default function ReportPage() {
       setFilteredServices(servicesToFilter);
     });
   }, [searchTerm, services, highlightedIds]);
+
+  const availablePuskeswansForPhotos = useMemo(() => {
+    const set = new Set(services.map(s => s.puskeswan));
+    return Array.from(set).sort();
+  }, [services]);
+
+  const availableOfficersForPhotos = useMemo(() => {
+    const relevantServices = photoPuskeswan === 'all' 
+      ? services 
+      : services.filter(s => s.puskeswan === photoPuskeswan);
+    const set = new Set(relevantServices.map(s => s.officerName));
+    return Array.from(set).sort();
+  }, [services, photoPuskeswan]);
+
+  const handleDownloadPhotos = async () => {
+    const zip = new JSZip();
+    const photosToDownload = services.filter(s => {
+      const matchPuskeswan = photoPuskeswan === 'all' || s.puskeswan === photoPuskeswan;
+      const matchOfficer = photoOfficer === 'all' || s.officerName === photoOfficer;
+      return matchPuskeswan && matchOfficer && s.photoUrl;
+    });
+
+    if (photosToDownload.length === 0) {
+      toast({ title: "Info", description: "Tidak ada foto yang ditemukan untuk filter ini." });
+      return;
+    }
+
+    setIsDownloadingPhotos(true);
+    try {
+      for (const service of photosToDownload) {
+        if (!service.photoUrl) continue;
+        
+        // Extract base64 data
+        const base64Data = service.photoUrl.split(',')[1];
+        if (!base64Data) continue;
+
+        const fileName = `${format(new Date(service.date), 'yyyyMMdd')}_${service.ownerName.replace(/[^a-z0-9]/gi, '_')}_${service.id?.substring(0, 5)}.jpg`;
+        zip.file(fileName, base64Data, { base64: true });
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(content);
+      const periodLabel = selectedMonth === 'all-months' ? selectedYear : `${months.find(m => m.value === selectedMonth)?.label}_${selectedYear}`;
+      link.download = `foto_pelayanan_${photoPuskeswan.replace(/\s+/g, '_')}_${photoOfficer.replace(/\s+/g, '_')}_${periodLabel}.zip`;
+      link.click();
+      
+      toast({ title: "Sukses", description: `${photosToDownload.length} foto berhasil diunduh.` });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Gagal", description: "Terjadi kesalahan saat mengunduh foto." });
+    } finally {
+      setIsDownloadingPhotos(false);
+    }
+  };
 
   const handleLocalDelete = (serviceId: string) => {
     setServices((currentServices) =>
@@ -394,6 +462,67 @@ export default function ReportPage() {
             </div>
           </div>
         </CardHeader>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold font-headline">Unduh Foto Pelayanan</CardTitle>
+          <CardDescription>
+            Pilih filter untuk mengunduh semua foto pelayanan dalam format ZIP.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Filter Puskeswan</label>
+              <Select value={photoPuskeswan} onValueChange={(v) => { setPhotoPuskeswan(v); setPhotoOfficer('all'); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Puskeswan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Puskeswan</SelectItem>
+                  {availablePuskeswansForPhotos.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Filter Petugas</label>
+              <Select value={photoOfficer} onValueChange={setPhotoOfficer}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Petugas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Petugas</SelectItem>
+                  {availableOfficersForPhotos.map((o) => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <PasswordDialog
+                title="Akses Terbatas"
+                description="Masukkan kata sandi untuk mengunduh foto."
+                onSuccess={handleDownloadPhotos}
+                trigger={
+                  <Button 
+                    className="w-full" 
+                    variant="secondary"
+                    disabled={isDownloadingPhotos || loading || isPending}
+                  >
+                    {isDownloadingPhotos ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Mengunduh...</>
+                    ) : (
+                      <><ImageIcon className="mr-2 h-4 w-4" /> Unduh Foto (ZIP)</>
+                    )}
+                  </Button>
+                }
+              />
+            </div>
+          </div>
+        </CardContent>
       </Card>
       
       <Tabs defaultValue="tabel" className="w-full">
