@@ -6,18 +6,22 @@ import { CornerUpLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FloatingBackButtonProps {
+  /** 
+   * Tujuan navigasi. 
+   * Gunakan '/' untuk Home, path spesifik seperti '/laporan', 
+   * atau 'back' untuk kembali ke halaman sebelumnya (browser back).
+   * Default: '/'
+   */
   href?: string | 'back';
+  /** Class tambahan untuk styling Tailwind */
   className?: string;
+  /** Label untuk aksesibilitas (aria-label) */
   label?: string;
 }
 
 /**
  * Komponen Tombol Kembali Melayang (Floating Back Button)
- * 
- * Cara Penggunaan:
- * <FloatingBackButton /> // Kembali ke '/' (Home)
- * <FloatingBackButton href="/laporan" /> // Kembali ke halaman tertentu
- * <FloatingBackButton href="back" /> // Kembali ke halaman sebelumnya (browser back)
+ * Menggunakan ShadCN Button dan Lucide Icon.
  */
 export function FloatingBackButton({ 
   href = '/', 
@@ -38,7 +42,7 @@ export function FloatingBackButton({
     <Button
       variant="default"
       className={cn(
-        "fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50",
+        "fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg z-50 transition-all hover:scale-110 active:scale-95",
         className
       )}
       aria-label={label}
