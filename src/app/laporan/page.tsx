@@ -17,6 +17,7 @@ import { PasswordDialog } from "@/components/password-dialog";
 import { puskeswanList, priorityDiagnosisOptions } from "@/lib/definitions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFirebase } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -318,16 +319,15 @@ export default function ReportPage() {
         servicesByOfficer[service.officerName].push(service);
       });
 
-      // Following screenshot layout: Content starts lower
       const allDataForSheet: any[][] = [];
-      allDataForSheet.push([]); // Row 1
-      allDataForSheet.push([]); // Row 2
+      allDataForSheet.push([]); 
+      allDataForSheet.push([]); 
       
       const officerNames = Object.keys(servicesByOfficer).sort();
 
       officerNames.forEach(officerName => {
-        allDataForSheet.push([officerName]); // Row 3: Officer Name (A3)
-        allDataForSheet.push(headers);       // Row 4: Headers
+        allDataForSheet.push([officerName]); 
+        allDataForSheet.push(headers);       
         
         const data = servicesByOfficer[officerName].map((service) => {
           const caseDevelopmentText = (service.caseDevelopments || [])
@@ -352,14 +352,13 @@ export default function ReportPage() {
           ];
         });
         allDataForSheet.push(...data);
-        allDataForSheet.push([]); // Space after data
-        allDataForSheet.push([]); // Extra space
+        allDataForSheet.push([]); 
+        allDataForSheet.push([]); 
       });
 
       const sheetName = puskeswan.replace('Puskeswan ', '').replace(/[/\\?*:[\]]/g, '');
       const ws = XLSX.utils.aoa_to_sheet(allDataForSheet);
 
-      // Set column widths to make it look like a real table
       ws['!cols'] = headers.map(() => ({ wch: 22 }));
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
     });
