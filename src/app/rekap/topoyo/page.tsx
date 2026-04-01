@@ -299,18 +299,10 @@ export default function RekapTopoyoPage() {
             
             const tableHeaders = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Gejala Klinis', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'Perkembangan Kasus', 'Lampiran Foto'];
             
-            const sheetData: any[][] = [
-                ["PEMERINTAHAN KABUPATEN MAMUJU TENGAH"],
-                ["DINAS KETAHANAN PANGAN DAN PERTANIAN"],
-                ["LAPORAN PELAYANAN KESEHATAN HEWAN"],
-                [],
-                ['Nama Petugas', `: ${officerName}`],
-                ['Kecamatan', `: Topoyo`],
-                ['Bulan', `: ${monthLabel}`],
-                ['Tahun', `: ${yearLabel}`],
-                [],
-                tableHeaders
-            ];
+            const sheetData: any[][] = [];
+            sheetData.push([]);
+            sheetData.push([officerName]); // Row with officer name matching screenshot A3
+            sheetData.push(tableHeaders); // Row with headers matching screenshot Row 4
     
             officerServices.forEach(service => {
                 const caseDevelopmentText = (service.caseDevelopments || [])
@@ -335,28 +327,7 @@ export default function RekapTopoyoPage() {
             });
     
             const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    
-            const merges = [
-                { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } },
-                { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } },
-                { s: { r: 2, c: 0 }, e: { r: 2, c: 11 } },
-            ];
-            ws['!merges'] = merges;
-            
-            ws['!cols'] = [
-                { wch: 12 }, 
-                { wch: 20 }, 
-                { wch: 20 }, 
-                { wch: 15 }, 
-                { wch: 40 }, 
-                { wch: 20 }, 
-                { wch: 15 }, 
-                { wch: 30 }, 
-                { wch: 20 }, 
-                { wch: 12 }, 
-                { wch: 20 }, 
-                { wch: 20 }, 
-            ];
+            ws['!cols'] = tableHeaders.map(() => ({ wch: 20 }));
     
             const sheetName = officerName.replace(/[/\\?*:[\]]/g, '').substring(0, 31);
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
