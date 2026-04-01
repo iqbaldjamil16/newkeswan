@@ -298,97 +298,87 @@ export default function ReportPage() {
 
     const headers = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Sindrom', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'ID Isikhnas', 'Perkembangan Kasus', 'Lampiran Foto'];
 
-    puskeswanList.forEach((puskeswan) => {
-      const servicesByPuskeswan = servicesToExport.filter(
-        (s) => s.puskeswan === puskeswan && !priorityDiagnosisOptions.includes(s.diagnosis)
-      );
+    // Get unique officers in the current export list
+    const officerNames = Array.from(new Set(servicesToExport.map(s => s.officerName))).sort();
+    const usedSheetNames = new Set<string>();
 
-      if (servicesByPuskeswan.length === 0) return;
+    officerNames.forEach((officerName) => {
+      // Filter services for this specific officer
+      const servicesByOfficer = servicesToExport.filter(
+        (s) => s.officerName === officerName && !priorityDiagnosisOptions.includes(s.diagnosis)
+      ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      const sortedServices = servicesByPuskeswan.sort((a, b) => {
-        const officerComparison = a.officerName.localeCompare(b.officerName);
-        if (officerComparison !== 0) return officerComparison;
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
-
-      const servicesByOfficer: { [key: string]: HealthcareService[] } = {};
-      sortedServices.forEach(service => {
-        if (!servicesByOfficer[service.officerName]) {
-          servicesByOfficer[service.officerName] = [];
-        }
-        servicesByOfficer[service.officerName].push(service);
-      });
+      if (servicesByOfficer.length === 0) return;
 
       const allDataForSheet: any[][] = [];
-      allDataForSheet.push([]); 
-      allDataForSheet.push([]); 
+      allDataForSheet.push([]); // Row 1: Empty
+      allDataForSheet.push([]); // Row 2: Empty
+      allDataForSheet.push([officerName]); // Row 3: Officer Name
+      allDataForSheet.push(headers);       // Row 4: Headers
       
-      const officerNames = Object.keys(servicesByOfficer).sort();
+      const data = servicesByOfficer.map((service) => {
+        const caseDevelopmentText = (service.caseDevelopments || [])
+            .filter(dev => dev.status && dev.count > 0)
+            .map(dev => `${dev.status} (${dev.count})`)
+            .join(', ');
 
-      officerNames.forEach(officerName => {
-        allDataForSheet.push([officerName]); 
-        allDataForSheet.push(headers);       
-        
-        const data = servicesByOfficer[officerName].map((service) => {
-          const caseDevelopmentText = (service.caseDevelopments || [])
-              .filter(dev => dev.status && dev.count > 0)
-              .map(dev => `${dev.status} (${dev.count})`)
-              .join(', ');
-
-          return [
-            format(new Date(service.date), 'dd-MM-yyyy'),
-            service.ownerName,
-            service.ownerAddress,
-            service.livestockType,
-            service.clinicalSymptoms,
-            service.diagnosis,
-            service.treatmentType,
-            service.treatments.map((t) => t.medicineName).join(', '),
-            service.treatments.map((t) => `${t.dosageValue} ${t.dosageUnit}`).join(', '),
-            service.livestockCount,
-            service.caseId || '-',
-            caseDevelopmentText || (service.caseDevelopment || '-'),
-            service.photoUrl ? '[Ada Foto]' : '-',
-          ];
-        });
-        allDataForSheet.push(...data);
-        allDataForSheet.push([]); 
-        allDataForSheet.push([]); 
+        return [
+          format(new Date(service.date), 'dd-MM-yyyy'),
+          service.ownerName,
+          service.ownerAddress,
+          service.livestockType,
+          service.clinicalSymptoms,
+          service.diagnosis,
+          service.treatmentType,
+          service.treatments.map((t) => t.medicineName).join(', '),
+          service.treatments.map((t) => `${t.dosageValue} ${t.dosageUnit}`).join(', '),
+          service.livestockCount,
+          service.caseId || '-',
+          caseDevelopmentText || (service.caseDevelopment || '-'),
+          service.photoUrl ? '[Ada Foto]' : '-',
+        ];
       });
+      allDataForSheet.push(...data);
 
-      const sheetName = puskeswan.replace('Puskeswan ', '').replace(/[/\\?*:[\]]/g, '');
+      // Create sheet name from officer name (max 31 chars, sanitized)
+      let sheetName = officerName.replace(/[/\\?*:[\]]/g, '').substring(0, 31);
+      if (usedSheetNames.has(sheetName)) {
+        sheetName = sheetName.substring(0, 28) + Math.floor(Math.random() * 99);
+      }
+      usedSheetNames.add(sheetName);
+
       const ws = XLSX.utils.aoa_to_sheet(allDataForSheet);
-
       ws['!cols'] = headers.map(() => ({ wch: 22 }));
-      XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
     });
 
+    // Handle Priority Diagnosis as a separate sheet (common for all officers)
     const priorityServices = servicesToExport.filter(s => priorityDiagnosisOptions.includes(s.diagnosis));
     if (priorityServices.length > 0) {
-      const sortedServices = priorityServices.sort((a, b) => {
+      const sortedPriorityServices = priorityServices.sort((a, b) => {
         const officerComparison = a.officerName.localeCompare(b.officerName);
         if (officerComparison !== 0) return officerComparison;
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       });
 
-      const servicesByOfficer: { [key: string]: HealthcareService[] } = {};
-      sortedServices.forEach(service => {
-        if (!servicesByOfficer[service.officerName]) {
-          servicesByOfficer[service.officerName] = [];
+      const priorityByOfficer: { [key: string]: HealthcareService[] } = {};
+      sortedPriorityServices.forEach(service => {
+        if (!priorityByOfficer[service.officerName]) {
+          priorityByOfficer[service.officerName] = [];
         }
-        servicesByOfficer[service.officerName].push(service);
+        priorityByOfficer[service.officerName].push(service);
       });
 
       const allDataForSheet: any[][] = [];
       allDataForSheet.push([]);
       allDataForSheet.push([]);
       
-      const officerNames = Object.keys(servicesByOfficer).sort();
+      const pOfficerNames = Object.keys(priorityByOfficer).sort();
 
-      officerNames.forEach(officerName => {
-        allDataForSheet.push([officerName]);
+      pOfficerNames.forEach(oName => {
+        allDataForSheet.push([oName]);
         allDataForSheet.push(headers);
-        const data = servicesByOfficer[officerName].map((service) => {
+        const data = priorityByOfficer[oName].map((service) => {
           const caseDevelopmentText = (service.caseDevelopments || [])
             .filter(dev => dev.status && dev.count > 0)
             .map(dev => `${dev.status} (${dev.count})`)
@@ -415,10 +405,9 @@ export default function ReportPage() {
         allDataForSheet.push([]);
       });
 
-      const sheetName = 'Laporan Prioritas';
-      const ws = XLSX.utils.aoa_to_sheet(allDataForSheet);
-      ws['!cols'] = headers.map(() => ({ wch: 22 }));
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      const wsPriority = XLSX.utils.aoa_to_sheet(allDataForSheet);
+      wsPriority['!cols'] = headers.map(() => ({ wch: 22 }));
+      XLSX.utils.book_append_sheet(wb, wsPriority, 'Laporan Prioritas');
     }
   
     const monthLabel =
