@@ -21,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 import { FloatingBackButton } from "@/components/floating-back-button";
 
 const StatisticsDisplay = lazy(() => import('@/components/statistics-display'));
@@ -319,13 +318,16 @@ export default function ReportPage() {
         servicesByOfficer[service.officerName].push(service);
       });
 
+      // Following screenshot layout: Content starts lower
       const allDataForSheet: any[][] = [];
+      allDataForSheet.push([]); // Row 1
+      allDataForSheet.push([]); // Row 2
+      
       const officerNames = Object.keys(servicesByOfficer).sort();
 
       officerNames.forEach(officerName => {
-        allDataForSheet.push([]);
-        allDataForSheet.push([officerName]); // Row with officer name
-        allDataForSheet.push(headers); // Row with headers
+        allDataForSheet.push([officerName]); // Row 3: Officer Name (A3)
+        allDataForSheet.push(headers);       // Row 4: Headers
         
         const data = servicesByOfficer[officerName].map((service) => {
           const caseDevelopmentText = (service.caseDevelopments || [])
@@ -350,12 +352,15 @@ export default function ReportPage() {
           ];
         });
         allDataForSheet.push(...data);
+        allDataForSheet.push([]); // Space after data
+        allDataForSheet.push([]); // Extra space
       });
 
       const sheetName = puskeswan.replace('Puskeswan ', '').replace(/[/\\?*:[\]]/g, '');
       const ws = XLSX.utils.aoa_to_sheet(allDataForSheet);
 
-      ws['!cols'] = headers.map(() => ({ wch: 20 }));
+      // Set column widths to make it look like a real table
+      ws['!cols'] = headers.map(() => ({ wch: 22 }));
       XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
     });
 
@@ -376,13 +381,15 @@ export default function ReportPage() {
       });
 
       const allDataForSheet: any[][] = [];
+      allDataForSheet.push([]);
+      allDataForSheet.push([]);
+      
       const officerNames = Object.keys(servicesByOfficer).sort();
 
       officerNames.forEach(officerName => {
-        allDataForSheet.push([]);
         allDataForSheet.push([officerName]);
         allDataForSheet.push(headers);
-        const data = priorityServices.filter(s => s.officerName === officerName).map((service) => {
+        const data = servicesByOfficer[officerName].map((service) => {
           const caseDevelopmentText = (service.caseDevelopments || [])
             .filter(dev => dev.status && dev.count > 0)
             .map(dev => `${dev.status} (${dev.count})`)
@@ -405,11 +412,13 @@ export default function ReportPage() {
           ];
         });
         allDataForSheet.push(...data);
+        allDataForSheet.push([]);
+        allDataForSheet.push([]);
       });
 
       const sheetName = 'Laporan Prioritas';
       const ws = XLSX.utils.aoa_to_sheet(allDataForSheet);
-      ws['!cols'] = headers.map(() => ({ wch: 20 }));
+      ws['!cols'] = headers.map(() => ({ wch: 22 }));
       XLSX.utils.book_append_sheet(wb, ws, sheetName);
     }
   

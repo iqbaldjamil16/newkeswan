@@ -300,9 +300,11 @@ export default function RekapTopoyoPage() {
             const tableHeaders = ['Tanggal', 'Nama Pemilik', 'Alamat Pemilik', 'Jenis Ternak', 'Gejala Klinis', 'Diagnosa', 'Jenis Penanganan', 'Obat yang Digunakan', 'Dosis', 'Jumlah Ternak', 'Perkembangan Kasus', 'Lampiran Foto'];
             
             const sheetData: any[][] = [];
-            sheetData.push([]);
-            sheetData.push([officerName]); // Row with officer name matching screenshot A3
-            sheetData.push(tableHeaders); // Row with headers matching screenshot Row 4
+            // Follow screenshot: rows 1 and 2 are empty
+            sheetData.push([]); 
+            sheetData.push([]); 
+            sheetData.push([officerName]); // Row 3: Officer Name
+            sheetData.push(tableHeaders);  // Row 4: Headers
     
             officerServices.forEach(service => {
                 const caseDevelopmentText = (service.caseDevelopments || [])
@@ -327,7 +329,7 @@ export default function RekapTopoyoPage() {
             });
     
             const ws = XLSX.utils.aoa_to_sheet(sheetData);
-            ws['!cols'] = tableHeaders.map(() => ({ wch: 20 }));
+            ws['!cols'] = tableHeaders.map(() => ({ wch: 22 }));
     
             const sheetName = officerName.replace(/[/\\?*:[\]]/g, '').substring(0, 31);
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
