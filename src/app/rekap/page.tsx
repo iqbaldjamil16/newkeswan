@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, useTransition } from "react";
@@ -41,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 import { useFirebase } from "@/firebase";
 import { PasswordDialog } from "@/components/password-dialog";
+import { FloatingBackButton } from "@/components/floating-back-button";
 
 interface RecapData {
     [puskeswan: string]: {
@@ -361,7 +361,7 @@ export default function RekapPage() {
 
         <div className="mt-6 md:mt-8">
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Pilih Bulan" />
                     </SelectTrigger>
@@ -523,8 +523,8 @@ export default function RekapPage() {
                                                     <TableRow>
                                                         <TableHead>Nama Obat</TableHead>
                                                         <TableHead className="text-right w-[120px]">Total Dosis</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
+                                                    </TableHeader>
+                                                </TableBody>
                                                 <TableBody>
                                                     {Object.keys(totalRecapData.medicines).length > 0 ? (
                                                         Object.entries(totalRecapData.medicines)
@@ -574,14 +574,7 @@ export default function RekapPage() {
             </div>
         </div>
       </div>
-       <Button
-          variant="default"
-          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg"
-          aria-label="Kembali ke halaman utama"
-          onClick={() => router.push('/')}
-        >
-          <CornerUpLeft className="h-7 w-7" />
-        </Button>
+      <FloatingBackButton />
     </div>
   );
 }

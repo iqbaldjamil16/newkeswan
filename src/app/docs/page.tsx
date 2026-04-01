@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CornerUpLeft, Download, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -14,6 +14,7 @@ import { format, getMonth, getYear, subYears, startOfMonth, endOfMonth } from 'd
 import { id } from 'date-fns/locale';
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FloatingBackButton } from '@/components/floating-back-button';
 
 const years = Array.from({ length: 5 }, (_, i) => getYear(subYears(new Date(), i)).toString());
 const months = Array.from({ length: 12 }, (_, i) => ({
@@ -195,15 +196,12 @@ export default function DocsPage() {
           if (servicesWithPhotos.length > 0) {
             const margin = 14;
             const horizontalGap = 10;
-            // Gunakan lebar halaman dikurangi margin kiri-kanan dan celah antar foto, dibagi 2
             const imgWidth = (pageWidth - (2 * margin) - horizontalGap) / 2;
-            // Gunakan tinggi halaman dikurangi margin atas-bawah
             const imgHeight = pageHeight - (2 * margin);
 
             servicesWithPhotos.forEach((service, i) => {
               const pageIdx = i % 2;
               
-              // Tambah halaman baru setiap 2 foto
               if (pageIdx === 0) {
                 doc.addPage();
               }
@@ -299,14 +297,7 @@ export default function DocsPage() {
             </CardContent>
         </Card>
       </div>
-      <Button
-        variant="default"
-        className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg"
-        aria-label="Kembali ke halaman utama"
-        onClick={() => router.push('/')}
-      >
-        <CornerUpLeft className="h-7 w-7" />
-      </Button>
+      <FloatingBackButton />
     </div>
   );
 }

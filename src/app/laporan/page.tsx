@@ -11,7 +11,7 @@ import JSZip from 'jszip';
 import { ServiceTable } from "@/components/service-table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CornerUpLeft, Download, LayoutGrid, BarChart2, ImageIcon, Loader2 } from "lucide-react";
+import { Download, LayoutGrid, BarChart2, ImageIcon, Loader2 } from "lucide-react";
 import { type HealthcareService, serviceSchema } from "@/lib/types";
 import { PasswordDialog } from "@/components/password-dialog";
 import { puskeswanList, priorityDiagnosisOptions } from "@/lib/definitions";
@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { FloatingBackButton } from "@/components/floating-back-button";
 
 const StatisticsDisplay = lazy(() => import('@/components/statistics-display'));
 
@@ -246,7 +247,6 @@ export default function ReportPage() {
       for (const service of photosToDownload) {
         if (!service.photoUrl) continue;
         
-        // Extract base64 data
         const base64Data = service.photoUrl.split(',')[1];
         if (!base64Data) continue;
 
@@ -285,7 +285,6 @@ export default function ReportPage() {
   const handleDownload = () => {
     const wb = XLSX.utils.book_new();
 
-    // Apply additional filters from the filter card
     const servicesToExport = filteredServices.filter(s => {
       const matchPuskeswan = photoPuskeswan === 'all' || s.puskeswan === photoPuskeswan;
       const matchOfficer = photoOfficer === 'all' || s.officerName === photoOfficer;
@@ -602,14 +601,7 @@ export default function ReportPage() {
         </Card>
       </Tabs>
       
-      <Button
-          variant="default"
-          className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg"
-          aria-label="Kembali ke halaman utama"
-          onClick={() => router.push('/')}
-        >
-          <CornerUpLeft className="h-7 w-7" />
-        </Button>
+      <FloatingBackButton />
     </div>
   );
 }

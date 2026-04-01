@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo, useCallback, useTransition } from "react";
@@ -38,6 +37,7 @@ import { useFirebase } from "@/firebase";
 import { PasswordDialog } from "@/components/password-dialog";
 import { ServiceTable } from "@/components/service-table";
 import { Input } from "@/components/ui/input";
+import { FloatingBackButton } from "@/components/floating-back-button";
 
 interface RecapData {
     medicines: { [medicineName: string]: { count: number, unit: string } };
@@ -411,7 +411,7 @@ export default function RekapTopoyoPage() {
         <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Rekap Puskeswan Topoyo</h1>
             <p className="text-muted-foreground mt-2 text-sm md:text-base">
-            Ringkasan penggunaan obat, kasus, dan detail inputan di Puskeswan Topoyo.
+            Ringkasan penggunaan obat, kasus, and detail inputan di Puskeswan Topoyo.
             </p>
         </div>
 
@@ -549,9 +549,7 @@ export default function RekapTopoyoPage() {
             />
         </div>
       </div>
-       <Button variant="default" className="fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg" aria-label="Kembali ke halaman utama" onClick={() => router.push('/')}>
-          <CornerUpLeft className="h-7 w-7" />
-        </Button>
+      <FloatingBackButton />
     </div>
   );
 }
