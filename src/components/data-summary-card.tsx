@@ -2,25 +2,22 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { LayoutGrid, TrendingUp, ClipboardCheck } from 'lucide-react';
+import { LayoutGrid, Users, ClipboardCheck } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, Timestamp } from 'firebase/firestore';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 /**
- * Komponen kartu ringkasan data yang menampilkan statistik laporan secara real-time.
+ * Komponen kartu ringkasan data yang menampilkan statistik petugas aktif dan total laporan.
  * 
  * SUMBER DATA:
- * Data diambil dari Google Cloud Firestore pada koleksi 'healthcareServices'.
- * Komponen ini menggunakan hook useCollection untuk berlangganan (subscribe) 
- * ke database sehingga angka akan berubah otomatis jika ada data masuk atau dihapus.
+ * Data diambil dari koleksi 'healthcareServices' di Firestore.
  */
 export function DataSummaryCard() {
   const { firestore } = useFirebase();
   const [now, setNow] = useState<Date | null>(null);
 
-  // Mengatur waktu sekarang di client untuk menghindari perbedaan hidrasi antara server dan browser
   useEffect(() => {
     setNow(new Date());
   }, []);
@@ -30,25 +27,21 @@ export function DataSummaryCard() {
     return format(now, 'MMMM', { locale: id });
   }, [now]);
 
-  // Membuat query untuk merujuk ke koleksi 'healthcareServices' di Firestore
   const servicesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Database Source: Firestore -> healthcareServices
     return collection(firestore, 'healthcareServices');
   }, [firestore]);
 
-  // Mengambil data secara real-time dari koleksi tersebut
   const { data: services, isLoading } = useCollection(servicesQuery);
 
-  // Logika Perhitungan: Menghitung total dan data bulanan
   const stats = useMemo(() => {
-    if (!services || !now) return { currentMonth: 0, total: 0 };
+    if (!services || !now) return { activeOfficers: 0, total: 0 };
 
     const start = startOfMonth(now);
     const end = endOfMonth(now);
 
     // Filter data untuk bulan berjalan
-    const currentMonthCount = services.filter(s => {
+    const currentMonthServices = services.filter(s => {
       let d: Date;
       if (s.date && typeof (s.date as any).toDate === 'function') {
         d = (s.date as any).toDate();
@@ -65,11 +58,13 @@ export function DataSummaryCard() {
       }
       
       return isWithinInterval(d, { start, end });
-    }).length;
+    });
+
+    // Menghitung jumlah petugas unik yang menginput di bulan ini
+    const activeOfficersSet = new Set(currentMonthServices.map(s => s.officerName));
 
     return {
-      currentMonth: currentMonthCount,
-      // Total Laporan diambil dari panjang array (jumlah dokumen) di koleksi 'healthcareServices'
+      activeOfficers: activeOfficersSet.size,
       total: services.length 
     };
   }, [services, now]);
@@ -87,11 +82,11 @@ export function DataSummaryCard() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
-              <TrendingUp className="h-4 w-4" />
-              <span>Bulan {currentMonthName}</span>
+              <Users className="h-4 w-4" />
+              <span>Petugas ({currentMonthName})</span>
             </div>
             <span className="text-3xl font-bold text-blue-500 tabular-nums">
-              {isLoading || !now ? '...' : stats.currentMonth}
+              {isLoading || !now ? '...' : stats.activeOfficers}
             </span>
           </div>
 
@@ -100,10 +95,6 @@ export function DataSummaryCard() {
               <ClipboardCheck className="h-4 w-4" />
               <span>Total Laporan</span>
             </div>
-            {/* 
-              Angka di bawah ini adalah representasi dari services.length
-              yang berasal dari koleksi Firestore 'healthcareServices'
-            */}
             <span className="text-3xl font-bold text-amber-900 dark:text-amber-200 tabular-nums">
               {isLoading || !now ? '...' : stats.total}
             </span>
