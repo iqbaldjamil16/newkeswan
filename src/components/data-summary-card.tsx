@@ -63,10 +63,13 @@ export function DataSummaryCard() {
 
     // Menghitung jumlah petugas unik yang menginput di bulan ini
     const activeOfficersSet = new Set(currentMonthServices.map(s => s.officerName));
+    
+    // Menghitung total jumlah ternak (kasus) agar sinkron dengan statistik
+    const totalCasesCount = currentMonthServices.reduce((sum, s) => sum + (s.livestockCount || 0), 0);
 
     return {
       activeOfficers: activeOfficersSet.size,
-      currentMonthReports: currentMonthServices.length
+      currentMonthReports: totalCasesCount
     };
   }, [services, now]);
 
