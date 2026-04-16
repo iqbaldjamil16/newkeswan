@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -9,7 +10,7 @@ import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 /**
- * Komponen kartu ringkasan data yang menampilkan statistik petugas aktif dan total laporan.
+ * Komponen kartu ringkasan data yang menampilkan statistik petugas aktif dan total laporan per bulan.
  * 
  * SUMBER DATA:
  * Data diambil dari koleksi 'healthcareServices' di Firestore.
@@ -35,7 +36,7 @@ export function DataSummaryCard() {
   const { data: services, isLoading } = useCollection(servicesQuery);
 
   const stats = useMemo(() => {
-    if (!services || !now) return { activeOfficers: 0, total: 0 };
+    if (!services || !now) return { activeOfficers: 0, currentMonthReports: 0 };
 
     const start = startOfMonth(now);
     const end = endOfMonth(now);
@@ -65,7 +66,7 @@ export function DataSummaryCard() {
 
     return {
       activeOfficers: activeOfficersSet.size,
-      total: services.length 
+      currentMonthReports: currentMonthServices.length
     };
   }, [services, now]);
 
@@ -93,10 +94,10 @@ export function DataSummaryCard() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
               <ClipboardCheck className="h-4 w-4" />
-              <span>Total Laporan</span>
+              <span>Laporan ({currentMonthName})</span>
             </div>
             <span className="text-3xl font-bold text-amber-900 dark:text-amber-200 tabular-nums">
-              {isLoading || !now ? '...' : stats.total}
+              {isLoading || !now ? '...' : stats.currentMonthReports}
             </span>
           </div>
         </div>
