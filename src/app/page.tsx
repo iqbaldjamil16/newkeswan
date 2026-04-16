@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Star, Copy, Check } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { DataSummaryCard } from "@/components/data-summary-card";
 
 export default function Home() {
   const { toast } = useToast();
@@ -51,41 +52,47 @@ export default function Home() {
             </Card>
 
             <TabsContent value="keswan" className="mt-6 md:mt-8">
-                <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Pelayanan Kesehatan Hewan</CardTitle>
-                    <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
-                    Input detail pelayanan yang telah dilakukan
-                    </CardDescription>
-                    <div className="flex items-center gap-2">
-                        <a href={linkToCopy} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 italic underline text-sm">
-                            {linkToCopy}
-                        </a>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={handleCopy}
-                        >
-                            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                            <span className="sr-only">Salin tautan</span>
-                        </Button>
-                    </div>
-                </CardHeader>
-                </Card>
+                <div className="flex flex-col md:flex-row gap-4 mb-6 md:mb-8">
+                    <Card className="flex-1">
+                        <CardHeader>
+                            <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Pelayanan Kesehatan Hewan</CardTitle>
+                            <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
+                            Input detail pelayanan yang telah dilakukan
+                            </CardDescription>
+                            <div className="flex items-center gap-2">
+                                <a href={linkToCopy} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 italic underline text-sm">
+                                    {linkToCopy}
+                                </a>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={handleCopy}
+                                >
+                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                    <span className="sr-only">Salin tautan</span>
+                                </Button>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                    <DataSummaryCard />
+                </div>
                 <div className="mt-6 md:mt-8">
-                <ServiceForm formType="keswan" />
+                    <ServiceForm formType="keswan" />
                 </div>
             </TabsContent>
             <TabsContent value="prioritas" className="mt-6 md:mt-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Laporan Prioritas</CardTitle>
-                        <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
-                            Input detail laporan prioritas.
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+                <div className="flex flex-col md:flex-row gap-4 mb-6 md:mb-8">
+                    <Card className="flex-1">
+                        <CardHeader>
+                            <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Laporan Prioritas</CardTitle>
+                            <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
+                                Input detail laporan prioritas.
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+                    <DataSummaryCard />
+                </div>
                 <div className="mt-6 md:mt-8">
                     <ServiceForm formType="priority" />
                 </div>
