@@ -80,7 +80,7 @@ export function DataSummaryCard() {
           <div className="p-2 rounded-md bg-blue-100 dark:bg-blue-900/30">
             <LayoutGrid className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
-          <span className="text-lg font-bold text-amber-900 dark:text-amber-200 font-headline">Ringkasan Data</span>
+          <span className="text-lg font-bold text-black dark:text-white font-headline">Ringkasan Data</span>
         </div>
         
         <div className="space-y-4">
