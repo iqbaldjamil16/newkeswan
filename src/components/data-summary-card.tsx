@@ -76,8 +76,8 @@ export function DataSummaryCard() {
     <Card className="w-full md:w-72 bg-card/50 border-primary/10 shadow-sm shrink-0">
       <CardContent className="p-5 space-y-5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-blue-100 dark:bg-blue-900/30">
-            <LayoutGrid className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className="p-2 rounded-md bg-orange-100 dark:bg-orange-900/30">
+            <LayoutGrid className="h-5 w-5 text-orange-600 dark:text-orange-400" />
           </div>
           <span className="text-lg font-bold text-black dark:text-white font-headline">Ringkasan Data</span>
         </div>
