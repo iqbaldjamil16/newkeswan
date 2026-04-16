@@ -10,7 +10,7 @@ import { id } from 'date-fns/locale';
 
 /**
  * Komponen kartu ringkasan data yang menampilkan statistik laporan secara real-time.
- * Menghitung jumlah laporan untuk bulan berjalan dan total keseluruhan laporan.
+ * Angka statistik dihasilkan dari perhitungan data di koleksi healthcareServices.
  */
 export function DataSummaryCard() {
   const { firestore } = useFirebase();
@@ -35,16 +35,18 @@ export function DataSummaryCard() {
   // Berlangganan ke data koleksi secara real-time
   const { data: services, isLoading } = useCollection(servicesQuery);
 
-  // Menghitung statistik berdasarkan data yang diterima
+  // Logika Utama: Menghitung statistik berdasarkan data dari Firestore
   const stats = useMemo(() => {
     if (!services || !now) return { currentMonth: 0, total: 0 };
 
+    // Tentukan awal dan akhir bulan berjalan
     const start = startOfMonth(now);
     const end = endOfMonth(now);
 
+    // Filter data: Hitung hanya data yang tanggalnya berada dalam rentang bulan ini
     const currentMonthCount = services.filter(s => {
       let d: Date;
-      // Menangani berbagai format tanggal dari Firestore (Timestamp, Date, atau String)
+      // Konversi berbagai format tanggal (Firestore Timestamp, Date, dll) ke objek Date JS
       if (s.date && typeof (s.date as any).toDate === 'function') {
         d = (s.date as any).toDate();
       } else if (s.date instanceof Timestamp) {
@@ -58,12 +60,14 @@ export function DataSummaryCard() {
       } else {
         return false;
       }
+      
+      // Cek apakah tanggal laporan masuk dalam interval bulan berjalan
       return isWithinInterval(d, { start, end });
     }).length;
 
     return {
       currentMonth: currentMonthCount,
-      total: services.length
+      total: services.length // Total seluruh dokumen yang ada di database
     };
   }, [services, now]);
 
