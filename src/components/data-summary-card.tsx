@@ -10,13 +10,17 @@ import { id } from 'date-fns/locale';
 
 /**
  * Komponen kartu ringkasan data yang menampilkan statistik laporan secara real-time.
- * Angka statistik dihasilkan dari perhitungan data di koleksi healthcareServices.
+ * 
+ * SUMBER DATA:
+ * Data diambil dari Google Cloud Firestore pada koleksi 'healthcareServices'.
+ * Komponen ini menggunakan hook useCollection untuk berlangganan (subscribe) 
+ * ke database sehingga angka akan berubah otomatis jika ada data masuk atau dihapus.
  */
 export function DataSummaryCard() {
   const { firestore } = useFirebase();
   const [now, setNow] = useState<Date | null>(null);
 
-  // Mengatur waktu sekarang di client untuk menghindari perbedaan hidrasi
+  // Mengatur waktu sekarang di client untuk menghindari perbedaan hidrasi antara server dan browser
   useEffect(() => {
     setNow(new Date());
   }, []);
@@ -26,27 +30,26 @@ export function DataSummaryCard() {
     return format(now, 'MMMM', { locale: id });
   }, [now]);
 
-  // Membuat query yang di-memoize untuk koleksi layanan kesehatan
+  // Membuat query untuk merujuk ke koleksi 'healthcareServices' di Firestore
   const servicesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
+    // Database Source: Firestore -> healthcareServices
     return collection(firestore, 'healthcareServices');
   }, [firestore]);
 
-  // Berlangganan ke data koleksi secara real-time
+  // Mengambil data secara real-time dari koleksi tersebut
   const { data: services, isLoading } = useCollection(servicesQuery);
 
-  // Logika Utama: Menghitung statistik berdasarkan data dari Firestore
+  // Logika Perhitungan: Menghitung total dan data bulanan
   const stats = useMemo(() => {
     if (!services || !now) return { currentMonth: 0, total: 0 };
 
-    // Tentukan awal dan akhir bulan berjalan
     const start = startOfMonth(now);
     const end = endOfMonth(now);
 
-    // Filter data: Hitung hanya data yang tanggalnya berada dalam rentang bulan ini
+    // Filter data untuk bulan berjalan
     const currentMonthCount = services.filter(s => {
       let d: Date;
-      // Konversi berbagai format tanggal (Firestore Timestamp, Date, dll) ke objek Date JS
       if (s.date && typeof (s.date as any).toDate === 'function') {
         d = (s.date as any).toDate();
       } else if (s.date instanceof Timestamp) {
@@ -61,13 +64,13 @@ export function DataSummaryCard() {
         return false;
       }
       
-      // Cek apakah tanggal laporan masuk dalam interval bulan berjalan
       return isWithinInterval(d, { start, end });
     }).length;
 
     return {
       currentMonth: currentMonthCount,
-      total: services.length // Total seluruh dokumen yang ada di database
+      // Total Laporan diambil dari panjang array (jumlah dokumen) di koleksi 'healthcareServices'
+      total: services.length 
     };
   }, [services, now]);
 
@@ -97,6 +100,10 @@ export function DataSummaryCard() {
               <ClipboardCheck className="h-4 w-4" />
               <span>Total Laporan</span>
             </div>
+            {/* 
+              Angka di bawah ini adalah representasi dari services.length
+              yang berasal dari koleksi Firestore 'healthcareServices'
+            */}
             <span className="text-3xl font-bold text-amber-900 dark:text-amber-200 tabular-nums">
               {isLoading || !now ? '...' : stats.total}
             </span>
