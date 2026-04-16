@@ -96,7 +96,7 @@ export function DataSummaryCard() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
               <ClipboardCheck className="h-4 w-4" />
-              <span>Total Kasus ({currentMonthName})</span>
+              <span>Total Kasus (Ekor)</span>
             </div>
             <span className="text-3xl font-bold text-amber-900 dark:text-amber-200 tabular-nums">
               {isLoading || !now ? '...' : stats.currentMonthReports}
