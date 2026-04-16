@@ -88,7 +88,7 @@ export function DataSummaryCard() {
               <Users className="h-4 w-4" />
               <span>Bulan {currentMonthName}</span>
             </div>
-            <span className="text-3xl font-bold text-blue-500 tabular-nums">
+            <span className="text-3xl font-bold text-primary tabular-nums">
               {isLoading || !now ? '...' : stats.activeOfficers}
             </span>
           </div>
