@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -87,7 +86,7 @@ export function DataSummaryCard() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
               <Users className="h-4 w-4" />
-              <span>Petugas ({currentMonthName})</span>
+              <span>Bulan {currentMonthName}</span>
             </div>
             <span className="text-3xl font-bold text-blue-500 tabular-nums">
               {isLoading || !now ? '...' : stats.activeOfficers}
