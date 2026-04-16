@@ -88,7 +88,7 @@ export function DataSummaryCard() {
               <Users className="h-4 w-4" />
               <span>Bulan {currentMonthName}</span>
             </div>
-            <span className="text-3xl font-bold text-primary tabular-nums">
+            <span className="text-2xl font-bold text-primary tabular-nums">
               {isLoading || !now ? '...' : stats.activeOfficers}
             </span>
           </div>
@@ -98,7 +98,7 @@ export function DataSummaryCard() {
               <ClipboardCheck className="h-4 w-4" />
               <span>Total Kasus (Ekor)</span>
             </div>
-            <span className="text-3xl font-bold text-primary tabular-nums">
+            <span className="text-2xl font-bold text-primary tabular-nums">
               {isLoading || !now ? '...' : stats.currentMonthReports}
             </span>
           </div>
