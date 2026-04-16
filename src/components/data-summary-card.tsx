@@ -4,21 +4,23 @@ import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { LayoutGrid, Users, ClipboardCheck } from 'lucide-react';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, Timestamp } from 'firebase/firestore';
-import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { collection, query, where, Timestamp } from 'firebase/firestore';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 /**
  * Komponen kartu ringkasan data yang menampilkan statistik petugas aktif dan total laporan per bulan.
  * 
- * SUMBER DATA:
- * Data diambil dari koleksi 'healthcareServices' di Firestore.
+ * OPTIMASI:
+ * Query difilter langsung di sisi Firestore untuk mempercepat pengambilan data
+ * dan mengurangi beban pemrosesan di sisi client.
  */
 export function DataSummaryCard() {
   const { firestore } = useFirebase();
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    // Mengatur tanggal sekarang setelah komponen dipasang untuk menghindari hydration mismatch
     setNow(new Date());
   }, []);
 
@@ -27,50 +29,37 @@ export function DataSummaryCard() {
     return format(now, 'MMMM', { locale: id });
   }, [now]);
 
+  // Query yang dioptimalkan: hanya mengambil data bulan berjalan dari server
   const servicesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'healthcareServices');
-  }, [firestore]);
+    if (!firestore || !now) return null;
+    
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+    
+    return query(
+      collection(firestore, 'healthcareServices'),
+      where('date', '>=', Timestamp.fromDate(start)),
+      where('date', '<=', Timestamp.fromDate(end))
+    );
+  }, [firestore, now]);
 
   const { data: services, isLoading } = useCollection(servicesQuery);
 
   const stats = useMemo(() => {
-    if (!services || !now) return { activeOfficers: 0, currentMonthReports: 0 };
-
-    const start = startOfMonth(now);
-    const end = endOfMonth(now);
-
-    // Filter data untuk bulan berjalan
-    const currentMonthServices = services.filter(s => {
-      let d: Date;
-      if (s.date && typeof (s.date as any).toDate === 'function') {
-        d = (s.date as any).toDate();
-      } else if (s.date instanceof Timestamp) {
-        d = s.date.toDate();
-      } else if (s.date instanceof Date) {
-        d = s.date;
-      } else if (typeof s.date === 'string') {
-        d = new Date(s.date);
-      } else if (s.date && typeof s.date === 'object' && 'seconds' in (s.date as any)) {
-        d = new Date((s.date as any).seconds * 1000);
-      } else {
-        return false;
-      }
-      
-      return isWithinInterval(d, { start, end });
-    });
+    // Jika data belum ada atau sedang loading, kembalikan nilai default
+    if (!services) return { activeOfficers: 0, currentMonthReports: 0 };
 
     // Menghitung jumlah petugas unik yang menginput di bulan ini
-    const activeOfficersSet = new Set(currentMonthServices.map(s => s.officerName));
+    const activeOfficersSet = new Set(services.map(s => s.officerName));
     
     // Menghitung total jumlah ternak (kasus) agar sinkron dengan statistik
-    const totalCasesCount = currentMonthServices.reduce((sum, s) => sum + (s.livestockCount || 0), 0);
+    const totalCasesCount = services.reduce((sum, s) => sum + (s.livestockCount || 0), 0);
 
     return {
       activeOfficers: activeOfficersSet.size,
       currentMonthReports: totalCasesCount
     };
-  }, [services, now]);
+  }, [services]);
 
   return (
     <Card className="w-full md:w-72 bg-card/50 border-primary/10 shadow-sm shrink-0">
