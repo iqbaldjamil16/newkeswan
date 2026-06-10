@@ -9,12 +9,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { type HealthcareService } from "@/lib/types";
 import { priorityDiagnosisOptions } from "@/lib/definitions";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 interface StatItem {
   name: string;
@@ -433,43 +427,37 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
         defaultColor={defaultColor}
       />
 
-      {/* --- Detailed Breakdown Section --- */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Statistik Kasus per Puskeswan</CardTitle>
-          <CardDescription>Rincian kasus dan diagnosa penyakit pada tiap jenis hewan per wilayah kerja Puskeswan.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="multiple" className="w-full space-y-4">
-            {sortedPuskeswans.map(pwName => (
-              <AccordionItem key={pwName} value={pwName} className="border rounded-lg px-4 bg-muted/20">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <span className="font-bold text-base">{pwName}</span>
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-6 space-y-4">
-                  {Object.entries(detailedPuskeswanStats[pwName])
-                    .sort(([a], [b]) => a.localeCompare(b))
-                    .map(([animalType, diagnoses]) => {
-                      const chartData = Object.entries(diagnoses)
-                        .map(([name, count]) => ({ name, count }))
-                        .sort((a, b) => b.count - a.count);
+      {/* --- Detailed Breakdown Section per Puskeswan --- */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-bold px-1">Statistik Kasus per Puskeswan</h2>
+        {sortedPuskeswans.map(pwName => (
+          <Card key={pwName} className="border rounded-lg shadow-sm">
+            <CardHeader className="bg-muted/10 border-b">
+              <CardTitle className="text-lg font-bold">{pwName}</CardTitle>
+              <CardDescription>Rincian kasus dan diagnosa penyakit di wilayah {pwName}.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-8">
+              {Object.entries(detailedPuskeswanStats[pwName])
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([animalType, diagnoses]) => {
+                  const chartData = Object.entries(diagnoses)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count);
                         
-                      return (
-                        <StatChart
-                          key={`${pwName}-${animalType}`}
-                          title={`Kasus ${animalType} di ${pwName}`}
-                          data={chartData}
-                          showAll={true}
-                          defaultColor={puskeswanColors[pwName]}
-                        />
-                      );
-                    })}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </CardContent>
-      </Card>
+                  return (
+                    <StatChart
+                      key={`${pwName}-${animalType}`}
+                      title={`Kasus ${animalType} di ${pwName}`}
+                      data={chartData}
+                      showAll={true}
+                      defaultColor={puskeswanColors[pwName]}
+                    />
+                  );
+                })}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {priorityDiagnosisStats.length > 0 && (
         <Card>
