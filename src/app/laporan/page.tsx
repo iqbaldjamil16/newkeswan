@@ -447,7 +447,7 @@ export default function ReportPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Filter Puskeswan</label>
               <Select value={photoPuskeswan} onValueChange={(v) => { setPhotoPuskeswan(v); setPhotoOfficer('all'); }}>
@@ -462,21 +462,60 @@ export default function ReportPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Filter Petugas</label>
-              <Select value={photoOfficer} onValueChange={setPhotoOfficer}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih Petugas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Petugas</SelectItem>
-                  {availableOfficersForPhotos.map((o) => (
-                    <SelectItem key={o} value={o}>{o}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Filter Petugas</label>
+                <Select value={photoOfficer} onValueChange={setPhotoOfficer}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Petugas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Petugas</SelectItem>
+                    {availableOfficersForPhotos.map((o) => (
+                      <SelectItem key={o} value={o}>{o}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Bulan</label>
+                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih Bulan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-months">Semua Bulan</SelectItem>
+                      {months.map((month) => (
+                        <SelectItem key={month.value} value={month.value}>
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tahun</label>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih Tahun" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-years">Semua Tahun</SelectItem>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
+
+            <div className="flex flex-col justify-end gap-2">
               <PasswordDialog
                 title="Akses Terbatas"
                 description="Silakan masukkan kata sandi untuk mengunduh laporan."
@@ -514,38 +553,12 @@ export default function ReportPage() {
       <Tabs defaultValue="tabel" className="w-full">
         <Card className="p-4 sm:p-6 pb-0">
           <CardContent className="p-0">
-              <div className="grid grid-cols-2 md:flex md:justify-end gap-2">
-                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                  <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih Bulan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="all-months">Semua Bulan</SelectItem>
-                      {months.map((month) => (
-                      <SelectItem key={month.value} value={month.value}>
-                          {month.label}
-                      </SelectItem>
-                      ))}
-                  </SelectContent>
-                  </Select>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih Tahun" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="all-years">Semua Tahun</SelectItem>
-                      {years.map((year) => (
-                      <SelectItem key={year} value={year}>
-                          {year}
-                      </SelectItem>
-                      ))}
-                  </SelectContent>
-                  </Select>
+              <div className="flex flex-col md:flex-row md:justify-end gap-2">
                   <Input
-                  placeholder="Cari data..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full col-span-2 md:w-64"
+                    placeholder="Cari data..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full md:w-64"
                   />
               </div>
               <div className="pt-4">
