@@ -457,7 +457,7 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
                 })}
             </CardContent>
             <CardFooter className="flex justify-end border-t bg-muted/5 py-3">
-               <span className="text-sm font-bold text-primary">
+               <span className="text-xs font-bold text-primary">
                   Total: {Object.values(detailedPuskeswanStats[pwName]).reduce((acc, animalMap) => 
                     acc + Object.values(animalMap).reduce((sum, count) => sum + count, 0), 0
                   )} Ekor
