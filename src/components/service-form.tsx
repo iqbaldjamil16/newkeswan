@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useTransition, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, PlusCircle, Trash2, Camera, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Camera, Upload, X, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { id } from 'date-fns/locale';
 import { doc, addDoc, collection, Timestamp } from 'firebase/firestore';
@@ -73,6 +74,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
       clinicalSymptoms: "",
       diagnosis: "",
       treatmentType: "",
+      googleDriveLink: "",
       photoUrl: "",
       treatments: [{ medicineType: "", medicineName: "", dosageValue: 0, dosageUnit: "ml" }],
       caseDevelopments: [{ status: "", count: 1 }],
@@ -882,6 +884,30 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     </div>
                     </div>
                 </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <FormField
+                  control={form.control}
+                  name="googleDriveLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Link Google Drive
+                        <span className="ml-auto text-xs italic font-normal text-muted-foreground">
+                          (Opsional)
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://drive.google.com/..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
             </Card>
 
             <Card>

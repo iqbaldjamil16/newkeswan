@@ -37,6 +37,7 @@ export const serviceSchema = z.object({
   clinicalSymptoms: z.string().min(1, "Wajib diisi."),
   diagnosis: z.string().min(1, "Wajib diisi."),
   treatmentType: z.string().min(1, "Wajib diisi."),
+  googleDriveLink: z.string().optional(),
   photoUrl: z.string().optional(),
   treatments: z.array(treatmentSchema).min(1, "Minimal satu pengobatan harus ditambahkan."),
   caseDevelopment: z.string().optional(),
