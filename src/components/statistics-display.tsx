@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { id } from 'date-fns/locale';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, Cell, PieChart, Pie, Legend } from 'recharts';
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { type HealthcareService } from "@/lib/types";
 import { priorityDiagnosisOptions } from "@/lib/definitions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -420,6 +420,7 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
         defaultColor={defaultColor}
         showAll={true}
       />
+      <PieChartContainer /> {/* Placeholder for consistency if needed, but the original has PieChart below global stats */}
       <StatPieChart
         title="Statistik per Puskeswan"
         data={statsByPuskeswan}
@@ -455,6 +456,13 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
                   );
                 })}
             </CardContent>
+            <CardFooter className="flex justify-end border-t bg-muted/5 py-3">
+               <span className="text-sm font-bold text-primary">
+                  Total: {Object.values(detailedPuskeswanStats[pwName]).reduce((acc, animalMap) => 
+                    acc + Object.values(animalMap).reduce((sum, count) => sum + count, 0), 0
+                  )} Ekor
+               </span>
+            </CardFooter>
           </Card>
         ))}
       </div>
@@ -490,3 +498,6 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
     </div>
   );
 }
+
+// Dummy for layout consistency if needed by the component's internal logic
+function PieChartContainer() { return null; }
