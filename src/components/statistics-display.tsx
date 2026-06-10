@@ -9,6 +9,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { type HealthcareService } from "@/lib/types";
 import { priorityDiagnosisOptions } from "@/lib/definitions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface StatItem {
   name: string;
@@ -69,11 +75,11 @@ const StatChart = ({
 
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg text-left">{title}</CardTitle>
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader className="px-0">
+        <CardTitle className="text-base font-semibold text-left">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="pr-0 sm:pr-4">
+      <CardContent className="px-0">
           <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={chartData}
@@ -87,11 +93,11 @@ const StatChart = ({
                 tickLine={false}
                 axisLine={false}
                 stroke="hsl(var(--muted-foreground))"
-                fontSize={isMobile ? 11 : 12}
+                fontSize={isMobile ? 10 : 11}
                 interval={0}
                 width={yAxisWidth}
                 tickFormatter={(value) => value}
-                tick={{ fontWeight: 'bold' }}
+                tick={{ fontWeight: 'normal' }}
               />
               <Tooltip
                 cursor={{ fill: "hsl(var(--muted))" }}
@@ -104,7 +110,7 @@ const StatChart = ({
                       >
                         <span className="font-bold">{label}</span>
                         <span className="text-muted-foreground ml-2">
-                          {`Jumlah Ternak: ${payload[0].value}`}
+                          {`Jumlah: ${payload[0].value} Ekor`}
                         </span>
                       </div>
                     );
@@ -125,12 +131,12 @@ const StatChart = ({
                       offset={8}
                       className="font-semibold"
                       fill="hsl(var(--foreground))"
-                      fontSize={isMobile ? 11 : 12}
+                      fontSize={isMobile ? 10 : 11}
                   />
                   {(chartData as StatItem[]).map((entry, index) => {
-                      let color = defaultColor || '#808080';
-                      if (title.startsWith('Statistik Kasus/Penyakit')) {
-                        color = '#006400';
+                      let color = defaultColor || '#26592b';
+                      if (title.startsWith('Kasus')) {
+                        color = '#26592b';
                       } else if (title === 'Statistik per Bulan') {
                           color = '#FA8072';
                       } else if (title === 'Statistik per Petugas') {
@@ -268,7 +274,7 @@ function getGenericLivestockType(type: string): string {
     if (lowerType.startsWith('ayam')) return 'Ayam';
     if (lowerType.startsWith('kucing')) return 'Kucing';
     if (lowerType.startsWith('anjing')) return 'Anjing';
-    return trimmedType; // Return original but trimmed
+    return trimmedType; 
 }
 
 export default function StatisticsDisplay({ services }: { services: HealthcareService[] }) {
@@ -320,12 +326,15 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
       if (chartData.length === 0) return null;
 
       return (
-        <StatChart
-          key={animalType}
-          title={`Statistik Kasus/Penyakit - ${animalType}`}
-          data={chartData}
-          showAll={true}
-        />
+        <Card key={animalType}>
+            <CardContent className="pt-6">
+                <StatChart
+                    title={`Statistik Kasus/Penyakit - ${animalType}`}
+                    data={chartData}
+                    showAll={true}
+                />
+            </CardContent>
+        </Card>
       );
     })
     .filter(Boolean);
@@ -347,14 +356,14 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
     'Puskeswan Topoyo': '#00008B',
     'Puskeswan Tobadak': '#006400',
     'Puskeswan Karossa': '#800080',
-    'Puskeswan Budong-Budong': '#FFFF00',
+    'Puskeswan Budong-Budong': '#f0c419',
     'Puskeswan Pangale': '#FF0000',
   };
   const defaultColor = '#808080';
 
   const caseStatusColors = {
     Sembuh: '#006400',
-    'Tidak Sembuh': '#FFFF00',
+    'Tidak Sembuh': '#f0c419',
     Mati: '#FF0000',
   };
   const defaultCaseStatusColor = '#808080';
@@ -381,6 +390,25 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
   const priorityCaseDevelopmentStats =
     calculateCaseDevelopmentStats(priorityServices);
 
+  // --- Logic for Detailed Stats per Puskeswan ---
+  const detailedPuskeswanStats = useMemo(() => {
+    const map: Record<string, Record<string, Record<string, number>>> = {};
+    
+    services.forEach(service => {
+      const pw = service.puskeswan;
+      const animal = getGenericLivestockType(service.livestockType);
+      const diagnosis = service.diagnosis.trim();
+      
+      if (!map[pw]) map[pw] = {};
+      if (!map[pw][animal]) map[pw][animal] = {};
+      map[pw][animal][diagnosis] = (map[pw][animal][diagnosis] || 0) + service.livestockCount;
+    });
+
+    return map;
+  }, [services]);
+
+  const sortedPuskeswans = Object.keys(detailedPuskeswanStats).sort();
+
   return (
     <div className="space-y-6">
       <StatChart
@@ -404,12 +432,55 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
         colors={puskeswanColors}
         defaultColor={defaultColor}
       />
+
+      {/* --- Detailed Breakdown Section --- */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Statistik Kasus per Puskeswan</CardTitle>
+          <CardDescription>Rincian kasus dan diagnosa penyakit pada tiap jenis hewan per wilayah kerja Puskeswan.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="multiple" className="w-full space-y-4">
+            {sortedPuskeswans.map(pwName => (
+              <AccordionItem key={pwName} value={pwName} className="border rounded-lg px-4 bg-muted/20">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <span className="font-bold text-base">{pwName}</span>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-6 space-y-4">
+                  {Object.entries(detailedPuskeswanStats[pwName])
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([animalType, diagnoses]) => {
+                      const chartData = Object.entries(diagnoses)
+                        .map(([name, count]) => ({ name, count }))
+                        .sort((a, b) => b.count - a.count);
+                        
+                      return (
+                        <StatChart
+                          key={`${pwName}-${animalType}`}
+                          title={`Kasus ${animalType} di ${pwName}`}
+                          data={chartData}
+                          showAll={true}
+                          defaultColor={puskeswanColors[pwName]}
+                        />
+                      );
+                    })}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+
       {priorityDiagnosisStats.length > 0 && (
-        <StatChart
-          title="Statistik Kasus/Penyakit Prioritas"
-          data={priorityDiagnosisStats}
-          showAll={true}
-        />
+        <Card>
+            <CardContent className="pt-6">
+                <StatChart
+                title="Statistik Kasus/Penyakit Prioritas"
+                data={priorityDiagnosisStats}
+                showAll={true}
+                />
+            </CardContent>
+        </Card>
       )}
       {keswanCaseDevelopmentStats.length > 0 && (
         <StatPieChart
