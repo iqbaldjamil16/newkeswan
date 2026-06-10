@@ -887,30 +887,6 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <FormField
-                  control={form.control}
-                  name="googleDriveLink"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <LinkIcon className="h-4 w-4" />
-                        Link Google Drive
-                        <span className="ml-auto text-xs italic font-normal text-muted-foreground">
-                          (Opsional)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://drive.google.com/..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
               <CardContent className="p-4 space-y-4">
                 <div>
                   <Label className="font-normal text-sm">
@@ -967,6 +943,26 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     </Button>
                   </div>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="googleDriveLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Link Google Drive
+                        <span className="ml-auto text-xs italic font-normal text-muted-foreground">
+                          (Opsional)
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://drive.google.com/..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           </div>
