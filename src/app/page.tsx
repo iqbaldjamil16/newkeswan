@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Star, Copy, Check } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { DataSummaryCard } from "@/components/data-summary-card";
 
 export default function Home() {
   const { toast } = useToast();
@@ -52,8 +51,8 @@ export default function Home() {
             </Card>
 
             <TabsContent value="keswan" className="mt-6 md:mt-8">
-                <div className="flex flex-col md:flex-row gap-4 mb-6 md:mb-8">
-                    <Card className="flex-1">
+                <div className="mb-6 md:mb-8">
+                    <Card>
                         <CardHeader>
                             <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Pelayanan Kesehatan Hewan</CardTitle>
                             <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
@@ -75,15 +74,14 @@ export default function Home() {
                             </div>
                         </CardHeader>
                     </Card>
-                    <DataSummaryCard />
                 </div>
                 <div className="mt-6 md:mt-8">
                     <ServiceForm formType="keswan" />
                 </div>
             </TabsContent>
             <TabsContent value="prioritas" className="mt-6 md:mt-8">
-                <div className="flex flex-col md:flex-row gap-4 mb-6 md:mb-8">
-                    <Card className="flex-1">
+                <div className="mb-6 md:mb-8">
+                    <Card>
                         <CardHeader>
                             <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Laporan Prioritas</CardTitle>
                             <CardDescription className="text-muted-foreground pt-2 text-sm md:text-base">
@@ -91,7 +89,6 @@ export default function Home() {
                             </CardDescription>
                         </CardHeader>
                     </Card>
-                    <DataSummaryCard />
                 </div>
                 <div className="mt-6 md:mt-8">
                     <ServiceForm formType="priority" />
