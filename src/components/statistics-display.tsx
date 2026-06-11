@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { type HealthcareService } from "@/lib/types";
 import { priorityDiagnosisOptions } from "@/lib/definitions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface StatItem {
   name: string;
@@ -45,6 +46,7 @@ const StatChart = ({
   puskeswanColors,
   defaultColor,
   showAll = false,
+  flat = false,
 }: {
   title: string;
   data: StatItem[];
@@ -52,6 +54,7 @@ const StatChart = ({
   puskeswanColors?: { [key: string]: string };
   defaultColor?: string;
   showAll?: boolean;
+  flat?: boolean;
 }) => {
   const isMobile = useIsMobile();
   
@@ -69,11 +72,11 @@ const StatChart = ({
 
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0">
-        <CardTitle className="text-base font-semibold text-left">{title}</CardTitle>
+    <Card className={cn(flat ? "border-none shadow-none bg-transparent" : "shadow-sm")}>
+      <CardHeader className={cn(flat && "px-0")}>
+        <CardTitle className={cn("font-semibold text-left", flat ? "text-base" : "text-lg")}>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent className={cn(flat && "px-0")}>
           <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={chartData}
@@ -320,15 +323,12 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
       if (chartData.length === 0) return null;
 
       return (
-        <Card key={animalType}>
-            <CardContent className="pt-6">
-                <StatChart
-                    title={`Statistik Kasus/Penyakit - ${animalType}`}
-                    data={chartData}
-                    showAll={true}
-                />
-            </CardContent>
-        </Card>
+        <StatChart
+          key={animalType}
+          title={`Statistik Kasus/Penyakit - ${animalType}`}
+          data={chartData}
+          showAll={true}
+        />
       );
     })
     .filter(Boolean);
@@ -384,7 +384,6 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
   const priorityCaseDevelopmentStats =
     calculateCaseDevelopmentStats(priorityServices);
 
-  // --- Logic for Detailed Stats per Puskeswan ---
   const detailedPuskeswanStats = useMemo(() => {
     const map: Record<string, Record<string, Record<string, number>>> = {};
     
@@ -408,7 +407,6 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
       <StatChart
         title="Statistik per Bulan"
         data={statsByMonth}
-        officerToPuskeswanMap={officerToPuskeswanMap}
         puskeswanColors={puskeswanColors}
         defaultColor={defaultColor}
       />
@@ -420,7 +418,7 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
         defaultColor={defaultColor}
         showAll={true}
       />
-      <PieChartContainer /> {/* Placeholder for consistency if needed, but the original has PieChart below global stats */}
+      
       <StatPieChart
         title="Statistik per Puskeswan"
         data={statsByPuskeswan}
@@ -428,7 +426,6 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
         defaultColor={defaultColor}
       />
 
-      {/* --- Detailed Breakdown Section per Puskeswan --- */}
       <div className="space-y-6">
         <h2 className="text-xl font-bold px-1">Statistik Kasus per Puskeswan</h2>
         {sortedPuskeswans.map(pwName => (
@@ -452,6 +449,7 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
                       data={chartData}
                       showAll={true}
                       defaultColor={puskeswanColors[pwName]}
+                      flat={true}
                     />
                   );
                 })}
@@ -468,15 +466,11 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
       </div>
 
       {priorityDiagnosisStats.length > 0 && (
-        <Card>
-            <CardContent className="pt-6">
-                <StatChart
-                title="Statistik Kasus/Penyakit Prioritas"
-                data={priorityDiagnosisStats}
-                showAll={true}
-                />
-            </CardContent>
-        </Card>
+        <StatChart
+          title="Statistik Kasus/Penyakit Prioritas"
+          data={priorityDiagnosisStats}
+          showAll={true}
+        />
       )}
       {keswanCaseDevelopmentStats.length > 0 && (
         <StatPieChart
@@ -498,6 +492,3 @@ export default function StatisticsDisplay({ services }: { services: HealthcareSe
     </div>
   );
 }
-
-// Dummy for layout consistency if needed by the component's internal logic
-function PieChartContainer() { return null; }
