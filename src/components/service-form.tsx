@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useTransition, useState, useRef } from "react";
@@ -420,7 +419,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     <FormItem>
                       <FormLabel>
                         ID Kasus iSIKHNAS
-                        <span className="ml-2 text-xs italic font-normal text-muted-foreground">
+                        <span className="ml-1 text-xs italic font-normal text-muted-foreground">
                           (Opsional)
                         </span>
                       </FormLabel>
@@ -891,7 +890,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                 <div>
                   <Label className="font-normal text-sm">
                     Upload Foto Pelayanan
-                    <span className="ml-2 text-xs italic font-normal text-muted-foreground">
+                    <span className="ml-1 text-xs italic font-normal text-muted-foreground">
                       (Opsional, Maks 500KB)
                     </span>
                   </Label>
@@ -952,7 +951,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                       <FormLabel className="flex items-center gap-2">
                         <LinkIcon className="h-4 w-4" />
                         Link Google Drive
-                        <span className="ml-2 text-xs italic font-normal text-muted-foreground">
+                        <span className="ml-1 text-xs italic font-normal text-muted-foreground">
                           (Opsional)
                         </span>
                       </FormLabel>
