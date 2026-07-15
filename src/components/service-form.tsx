@@ -113,7 +113,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
     'Puskeswan Budong-Budong': budongBudongDesaList,
     'Puskeswan Pangale': pangaleDesaList,
     'Puskeswan Tobadak': tobadakDesaList,
-    'Puskeswan Topoyo': topoyoDesaList,
+    'Puskeswan Topoyo': topoyoOfficerList,
   };
   const desaList = desaListMap[watchedPuskeswan] || [];
   const isDesaSelection = desaList.length > 0;
@@ -950,7 +950,7 @@ export function ServiceForm({ initialData, formType = 'keswan' }: { initialData?
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <LinkIcon className="h-4 w-4" />
-                        Link Google Drive
+                        Link Google Drive Dokumentasi Foto
                         <span className="ml-1 text-xs italic font-normal text-muted-foreground">
                           (Opsional)
                         </span>
